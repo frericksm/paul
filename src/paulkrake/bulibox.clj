@@ -1,5 +1,6 @@
 (ns paulkrake.bulibox
-   (:require [net.cgrand.enlive-html :as html]))
+  (:require [net.cgrand.enlive-html :as html]
+            [paulkrake.score :as s]))
 
 (def ergebnisse-bl1314 "http://www.bulibox.de/spieltage/B100151.html")
 
@@ -26,6 +27,17 @@
         (map (fn [[h g e]] (concat [h g] (clojure.string/split e #":") )) x)
         ))
 
+(defn vereine1314 []
+  (as-> (results1314) x
+        (map (fn [[h]] h) x)
+        (set x)))
+
 (defn games-of [verein]
   (as-> (results1314) x
         (filter (fn [[h g e]] (contains? #{h g } verein )) x)))
+
+(defn rating1314 []
+  (let [vereine (vereine1314)
+        initial-scoring (s/initial-scoring vereine)
+        verein2games (reduce (fn [a v] (assoc a v (games-of v))) {} vereine)
+        ]))

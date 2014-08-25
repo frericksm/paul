@@ -7,13 +7,9 @@
   (as-> (io/reader "resources/spielplan1415.csv" :encoding "Cp1252") x
         (line-seq x)
         (map #(clojure.string/split % #",") x)
-        (filter (fn [[t]] (= t (str nr))) x  ) )
+        (filter (fn [[t]] (= t (str nr))) x  )
+        (map (fn [[_ h g e]] (concat [h g] (if (not (nil? e)) (clojure.string/split e #":")))) x)
+        )
   )
 
-(defn score-fn [tor]
-        (let [t (if (number? tor) tor (Integer/valueOf tor))]
-          (as-> (range t ) x
-            (map inc x)
-            (map #(/ 1.0 (Math/pow 2 %)) x)
-            (apply + x)
-            )))
+

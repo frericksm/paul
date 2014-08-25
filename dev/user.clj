@@ -1,10 +1,12 @@
 (ns user
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer (refresh)]
-            [paulkrake.glicko2 :as pg]
-            [paulkrake.app :as app]
-            [paulkrake.bulibox :as b]
-            ))
+            [paulkrake.app :as app ]
+           )
+  (:use [paulkrake.glicko2 ]
+        [paulkrake.spielplan]
+        [paulkrake.score]
+        [paulkrake.bulibox]))
 
 (def system nil)
 
