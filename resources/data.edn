@@ -1,0 +1,23 @@
+[{:spieltag 0
+  :vereine
+  [{:name "FC Bayern München" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "1. FC Köln" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "1. FSV Mainz 05" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "1899 Hoffenheim" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Bayer 04 Leverkusen" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Borussia Mönchengladbach" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Borussia Dortmund" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Eintracht Frankfurt" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "FC Augsburg" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "FC Schalke 04" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Hamburger SV" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Hannover 96" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Hertha BSC" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Sport-Club Freiburg" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "SC Paderborn 07" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "VfB Stuttgart" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "SV Werder Bremen" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}
+   {:name "Vfl Wolfsburg" :abwehr {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06} :sturm {:rating 1500.0 :ratings-deviation 350.0 :volatility 0.06}}]}
+
+
+ ]
