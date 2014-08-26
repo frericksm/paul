@@ -1,14 +1,14 @@
 (ns paulkrake.score
   (:require [paulkrake.glicko2 :as g]))
 
-(defn initial-rating-data [vereine]
-  (reduce (fn [a v] (assoc a v
-                          {:abwehr {:rating 1500.0
+(def start-rating-data {:abwehr {:rating 1500.0
                                     :rating-deviation 350.0
                                     :volatility 0.06}
                            :angriff {:rating 1500.0
                                      :rating-deviation 350.0
-                                     :volatility 0.06}})) {} vereine))
+                                     :volatility 0.06}})
+(defn initial-rating-data [vereine]
+  (reduce (fn [a v] (assoc a v start-rating-data)) {} vereine))
 
 (defn get-rating-data [data verein abwehr-or-sturm-keyword]
   (get-in data [verein abwehr-or-sturm-keyword]))
