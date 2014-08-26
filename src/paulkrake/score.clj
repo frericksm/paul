@@ -73,5 +73,69 @@
         h-score (g/E-fn (g/mu h-angiff-r) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
         ;g-score (- 1.0  (exptected-score h-abwehr-r g-angriff-r))
         g-score (- 1.0  (g/E-fn (g/mu h-abwehr-r) (g/mu g-angriff-r) (g/phi g-angriff-rd )))]
-    (println h-angiff-r  h-abwehr-r g-angriff-r g-abwehr-r )
+    ;;(println h-angiff-r  h-abwehr-r g-angriff-r g-abwehr-r )
     [(goal-fn h-score) (goal-fn g-score)]))
+
+(defn predict-games [data games]
+  (as-> games x
+        (map (fn [[h g ]]
+               (let [[h-goals g-goals] (predict data h g)]
+                 [h g h-goals g-goals])) x)))
+
+(defn games-of [games verein]
+  (as-> games x
+        (filter (fn [[h g e]] (contains? #{h g } verein )) x)))
+
+(defn new-vereins-rating [data verein games]
+  (let [verein-rating (get data verein)
+        scores (scores verein games)
+        scores-abwehr (map :abwehr scores)
+        scores-angriff (map :angriff scores)
+        gegner (gegner verein games)
+        old-rating-abwehr (get-in verein-rating
+                                  [:abwehr :rating] )
+        old-rating-deviation-abwehr (get-in verein-rating
+                                            [:abwehr :rating-deviation])
+        old-volatility (get-in verein-rating
+                               [:abwehr :volatility])
+        oppenents-rating-angriff (as-> gegner x
+                                       (map #(get data %) x)
+                                       (map #(get-in % [:angriff :rating]) x))
+        oppenents-rating-deviation-angriff (as-> gegner x
+                                                 (map #(get data %) x)
+                                                 (map #(get-in % [:angriff :rating-deviation]) x))
+        
+        old-rating-angriff (get-in verein-rating
+                                   [:angriff :rating] )
+        old-rating-deviation-angriff (get-in verein-rating
+                                            [:angriff :rating-deviation])
+        oppenents-rating-abwehr (as-> gegner x
+                                      (map #(get data %) x)
+                                      (map #(get-in % [:abwehr :rating]) x))
+        oppenents-rating-deviation-abwehr (as-> gegner x
+                                                (map #(get data %) x)
+                                                (map #(get-in % [:abwehr :rating-deviation]) x))
+        new-abwehr-rating-data (g/adjust-rating old-rating-abwehr old-rating-deviation-abwehr old-volatility
+                                                oppenents-rating-angriff oppenents-rating-deviation-angriff scores-abwehr)
+        new-angriff-rating-data (g/adjust-rating old-rating-angriff old-rating-deviation-angriff old-volatility
+                                                oppenents-rating-abwehr oppenents-rating-deviation-abwehr scores-angriff)
+        ]
+    {:abwehr new-abwehr-rating-data :angriff new-angriff-rating-data}
+    ))
+
+(defn vereine [games]
+  (->> games
+       (map (fn [[h g _]] [h g]))
+       flatten
+       set))
+
+(defn adjust-ratings [data games]
+  (as-> (vereine games) x
+        (map (fn [v] [v (new-vereins-rating data v games)]) x)
+        (into {} x)))
+
+(defn tabelle [data angriff-abwehr-keyword]
+  (->> data
+       (sort-by (fn [[name m]] (* -1.0 (get-in m [angriff-abwehr-keyword :rating]))))
+       (map first)
+       ))

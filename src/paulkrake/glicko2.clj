@@ -6,32 +6,35 @@
 
 (def epsilon 0.000001)
 
-(defn mu [r] (/ (- r 1500.0) 173.7178 ))
+(defn mu [rating] (/ (- rating 1500.0) 173.7178 ))
 
-(defn phi [rd] (/ rd 173.7178))
+(defn phi [rating-deviation] (/ rating-deviation 173.7178))
 
 (defn rating [mu] (+ 1500.0 (* 173.7178 mu)))
 
 (defn rating-deviation  [phi] (* 173.7178 phi))
 
-(defn g
+;; (= x (mu (rating x) ))
+;; (= x (phi (rating-deviation x) ))
+
+(defn g-fn
   [phi]
   (/ 1.0
      (Math/sqrt (+ 1 (* 3.0 (/ (* phi phi) (* Math/PI Math/PI)))))))
 
 (defn E-fn [mu, mu_j, phi_j]
   (/ 1.0
-     (+ 1 (Math/exp (* -1.0 (g phi_j) (- mu mu_j))))))
+     (+ 1 (Math/exp (* -1.0 (g-fn phi_j) (- mu mu_j))))))
 
 (defn v-summand [mu mu_i phi_i]
   (let [e (E-fn mu mu_i phi_i)]
-    (* (g phi_i) (g phi_i) e (- 1.0 e)))
+    (* (g-fn phi_i) (g-fn phi_i) e (- 1.0 e)))
   )
 (defn v-fn [mu mus phis]
   (/ 1.0 (apply + (map (partial v-summand mu) mus phis))))
 
 (defn delta-summand [mu mu_i phi_i s_i]
-  (* (g phi_i) (- s_i (E-fn mu mu_i phi_i))))
+  (* (g-fn phi_i) (- s_i (E-fn mu mu_i phi_i))))
 
 (defn delta-fn [v mu mus phis s]
   (* v (apply + (map (partial delta-summand mu) mus phis s))))
@@ -91,7 +94,7 @@
   (/ 1.0 (Math/sqrt (+  (/ 1.0 (* phi-star phi-star)) (/ 1.0 v)  ))))
 
 (defn new-mu-summand [mu mu_i phi_i s_i]
-  (* (g phi_i) (- s_i (E-fn mu mu_i phi_i))))
+  (* (g-fn phi_i) (- s_i (E-fn mu mu_i phi_i))))
 
 (defn new-mu [mu phi-strich mus phis s]
 
