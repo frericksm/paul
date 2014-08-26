@@ -100,15 +100,15 @@
 
 
 (defn adjust-rating [old-rating old-rating-deviation old-volatility
-                     opponent-ratings oppenent-rating-deviations game-scores ]
+                     opponents-rating oppenents-rating-deviation game-scores ]
   (let [mu1 (mu old-rating)
         phi1 (phi old-rating-deviation)
-        mus (if (coll? opponent-ratings)
-              (map mu opponent-ratings)
-              [(mu opponent-ratings)])
-        phis (if (coll? oppenent-rating-deviations)
-               (map phi oppenent-rating-deviations)
-               [(phi oppenent-rating-deviations)])
+        mus (if (coll? opponents-rating)
+              (map mu opponents-rating)
+              [(mu opponents-rating)])
+        phis (if (coll? oppenents-rating-deviation)
+               (map phi oppenents-rating-deviation)
+               [(phi oppenents-rating-deviation)])
         scores (if (coll? game-scores) game-scores [game-scores])
         sigma old-volatility
         v (v-fn mu1 mus phis)
@@ -116,6 +116,6 @@
         sigma-strich (new-sigma sigma phi1 delta v)
         phi-strich (new-phi v (phi-star phi1 sigma-strich))
         mu-strich (new-mu mu1 phi-strich mus phis scores)]
-    {:new-rating (rating mu-strich)
-     :new-rating-deviation (rating-deviation phi-strich)
-     :new-volatility sigma-strich}))
+    {:rating (rating mu-strich)
+     :rating-deviation (rating-deviation phi-strich)
+     :volatility sigma-strich}))
