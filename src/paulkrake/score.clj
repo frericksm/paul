@@ -80,7 +80,7 @@
   (as-> games x
         (map (fn [[h g ]]
                (let [[h-goals g-goals] (predict data h g)]
-                 [h g h-goals g-goals])) x)))
+                 (format "%s - %s   %.2f : %.2f" h g h-goals g-goals))) x)))
 
 (defn games-of [games verein]
   (as-> games x

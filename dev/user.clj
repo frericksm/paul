@@ -6,7 +6,8 @@
   (:use [paulkrake.glicko2 ]
         [paulkrake.spielplan]
         [paulkrake.score]
-        [paulkrake.bulibox]))
+        [paulkrake.bulibox]
+        [paulkrake.data]))
 
 (predict-games (adjust-ratings (ratings1415) (spieltag 1)) (spieltag 2))
 
