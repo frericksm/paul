@@ -16,7 +16,15 @@
 (defn update-rating-data [data verein abwehr-or-sturm-keyword rating-data]
   (assoc-in data [verein abwehr-or-sturm-keyword] rating-data))
 
+(def base 0.318)
+
 (defn score-fn [number-of-goals]
+  (let [goals-as-number (if (number? number-of-goals)
+            number-of-goals
+            (Integer/valueOf number-of-goals))]
+    (- 1.0 (Math/pow base goals-as-number))))
+
+(defn score-fn_alt [number-of-goals]
   (let [goals-as-number (if (number? number-of-goals)
             number-of-goals
             (Integer/valueOf number-of-goals))]
