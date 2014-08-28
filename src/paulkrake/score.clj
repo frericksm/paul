@@ -1,10 +1,10 @@
 (ns paulkrake.score
   (:require [paulkrake.glicko2 :as g]))
 
-(def start-rating-data {:abwehr {:rating 1500.0
+(def start-rating-data {:abwehr {:rating 800.0
                                     :rating-deviation 350.0
                                     :volatility 0.06}
-                           :angriff {:rating 1500.0
+                           :angriff {:rating 800.0
                                      :rating-deviation 350.0
                                      :volatility 0.06}})
 (defn initial-rating-data [vereine]
@@ -16,7 +16,7 @@
 (defn update-rating-data [data verein abwehr-or-sturm-keyword rating-data]
   (assoc-in data [verein abwehr-or-sturm-keyword] rating-data))
 
-(def base 0.318)
+(def base 0.46)
 
 (defn score-fn [number-of-goals]
   (let [goals-as-number (if (number? number-of-goals)
@@ -64,10 +64,6 @@
                ]
            {:abwehr abwehr-score :angriff angriff-score})) games))
 
-(defn exptected-score [r1 r2]
-  (/ 1.0
-     (+ 1 (Math/pow 10.0 (/  (- r2 r1) 400.0)))))
-
 (defn predict [data heim gast]
   (let [h-angiff-r  (get-in data [heim :angriff :rating])
         h-angiff-rd (get-in data [heim :angriff :rating-deviation])
@@ -77,11 +73,8 @@
         g-abwehr-rd (get-in data [gast :abwehr :rating-deviation])
         g-angriff-r  (get-in data [gast :angriff :rating])
         g-angriff-rd (get-in data [gast :angriff :rating-deviation])
-        ;h-score (exptected-score h-angiff-r g-abwehr-r)
         h-score (g/E-fn (g/mu h-angiff-r) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
-        ;g-score (- 1.0  (exptected-score h-abwehr-r g-angriff-r))
         g-score (- 1.0  (g/E-fn (g/mu h-abwehr-r) (g/mu g-angriff-r) (g/phi g-angriff-rd )))]
-    ;;(println h-angiff-r  h-abwehr-r g-angriff-r g-abwehr-r )
     [(goal-fn h-score) (goal-fn g-score)]))
 
 (defn predict-games [data games]
