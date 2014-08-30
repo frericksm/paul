@@ -1,12 +1,20 @@
 (ns paulkrake.score
   (:require [paulkrake.glicko2 :as g]))
 
-(def start-rating-data {:abwehr {:rating 800.0
+(def start-rating-data {:abwehr {:rating 1500.0
                                     :rating-deviation 350.0
                                     :volatility 0.06}
-                           :angriff {:rating 800.0
+                           :angriff {:rating 1500.0
                                      :rating-deviation 350.0
                                      :volatility 0.06}})
+
+(def aufsteiger-rating-data {:abwehr {:rating 1400.0
+                                    :rating-deviation 350.0
+                                    :volatility 0.06}
+                           :angriff {:rating 1400.0
+                                     :rating-deviation 350.0
+                                     :volatility 0.06}})
+
 (defn initial-rating-data [vereine]
   (reduce (fn [a v] (assoc a v start-rating-data)) {} vereine))
 
@@ -65,17 +73,38 @@
            {:abwehr abwehr-score :angriff angriff-score})) games))
 
 (defn predict [data heim gast]
-  (let [h-angiff-r  (get-in data [heim :angriff :rating])
-        h-angiff-rd (get-in data [heim :angriff :rating-deviation])
+  (let [h-angriff-r  (get-in data [heim :angriff :rating])
+        h-angriff-rd (get-in data [heim :angriff :rating-deviation])
         h-abwehr-r  (get-in data [heim :abwehr :rating])
         h-abwehr-rd (get-in data [heim :abwehr :rating-deviation])
         g-abwehr-r  (get-in data [gast :abwehr :rating])
         g-abwehr-rd (get-in data [gast :abwehr :rating-deviation])
         g-angriff-r  (get-in data [gast :angriff :rating])
         g-angriff-rd (get-in data [gast :angriff :rating-deviation])
-        h-score (g/E-fn (g/mu h-angiff-r) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
+        h-score (g/E-fn (g/mu h-angriff-r) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
         g-score (- 1.0  (g/E-fn (g/mu h-abwehr-r) (g/mu g-angriff-r) (g/phi g-angriff-rd )))]
     [(goal-fn h-score) (goal-fn g-score)]))
+
+(defn predict-2 [data heim gast]
+  (let [h-angriff-r  (get-in data [heim :angriff :rating])
+        h-angriff-rd (get-in data [heim :angriff :rating-deviation])
+        h-abwehr-r  (get-in data [heim :abwehr :rating])
+        h-abwehr-rd (get-in data [heim :abwehr :rating-deviation])
+        g-abwehr-r  (get-in data [gast :abwehr :rating])
+        g-abwehr-rd (get-in data [gast :abwehr :rating-deviation])
+        g-angriff-r  (get-in data [gast :angriff :rating])
+        g-angriff-rd (get-in data [gast :angriff :rating-deviation])
+        h-score-min (g/E-fn (g/mu (- h-angriff-r (* 1.0 h-angriff-rd))) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
+        h-score-max (g/E-fn (g/mu (+ h-angriff-r (* 1.0 h-angriff-rd))) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
+        g-score-max (- 1.0  (g/E-fn (g/mu (- h-abwehr-r (* 1.0 h-abwehr-rd))) (g/mu g-angriff-r) (g/phi g-angriff-rd )))
+        g-score-min (- 1.0  (g/E-fn (g/mu (+ h-abwehr-r (* 1.0 h-abwehr-rd))) (g/mu g-angriff-r) (g/phi g-angriff-rd )))]
+    [[(goal-fn h-score-min) (goal-fn h-score-max)] [(goal-fn g-score-min) (goal-fn g-score-max)]]))
+
+(defn predict-games-2 [data games]
+  (as-> games x
+        (map (fn [[h g ]]
+               (let [[[hmin hmax] [gmin gmax]] (predict-2 data h g)]
+                 (format "%s - %s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax))) x)))
 
 (defn predict-games [data games]
   (as-> games x

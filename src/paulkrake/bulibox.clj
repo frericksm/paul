@@ -70,5 +70,5 @@
 (defn ratings1415 []
   (let [r1314 (ratings1314)]
     (as->  v2v x
-           (map (fn [[a b]] [a  (get r1314 b  s/start-rating-data )]) x)
+           (map (fn [[a b]] [a  (get r1314 b  s/aufsteiger-rating-data )]) x)
            (into {} x))))
