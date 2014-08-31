@@ -116,6 +116,7 @@
   (as-> games x
         (filter (fn [[h g e]] (contains? #{h g } verein )) x)))
 
+
 (defn new-vereins-rating [data verein games]
   (let [verein-rating (get data verein)
         scores (scores verein games)
@@ -159,13 +160,25 @@
        flatten
        set))
 
+(defn played-games [games]
+  (filter (fn [[h g hg gg ]] (and (not (nil? hg) ) (not (nil? gg)))) games))
+
 (defn adjust-ratings [data games]
-  (as-> (vereine games) x
+  (as-> (vereine games) x        
         (map (fn [v] [v (new-vereins-rating data v games)]) x)
         (into {} x)))
 
-(defn tabelle [data angriff-abwehr-keyword]
-  (->> data
-       (sort-by (fn [[name m]] (* -1.0 (get-in m [angriff-abwehr-keyword :rating]))))
-       (map first)
-       ))
+(defn tabelle
+  ( [data]
+      (->> data
+           (sort-by (fn [[name m]]
+                      (let [ang-r (Math/pow  (get-in m [:angriff :rating]) 2)
+                            abw-r (Math/pow  (get-in m [:abwehr :rating])  2)]
+                        (* -1.0 (Math/sqrt (+ ang-r abw-r) )))))
+           (map (fn [[name m]] (format "%-30s : %.2f %.2f" name  (get-in m [:angriff :rating]) (get-in m [:abwehr :rating]))))
+           ))
+  ( [data angriff-abwehr-keyword]
+      (->> data
+           (sort-by (fn [[name m]] (* -1.0 (get-in m [angriff-abwehr-keyword :rating]))))
+           (map (fn [[name m]] (format "%-30s : %.2f %.2f" name  (get-in m [:angriff :rating]) (get-in m [:abwehr :rating]))))
+           )))
