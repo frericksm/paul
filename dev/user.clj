@@ -9,7 +9,7 @@
         [paulkrake.bulibox]
         [paulkrake.data]))
 
-(predict-games (adjust-ratings (ratings1415) (spieltag 1)) (spieltag 2))
+;(predict-games (adjust-ratings (ratings1415) (spieltag 1)) (spieltag 2))
 
 (def system nil)
 

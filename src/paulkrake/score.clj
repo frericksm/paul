@@ -57,20 +57,26 @@
                         (- b a)))) x)
         (first x)))
 
+(defn games-of [games verein]
+  (as-> games x
+        (filter (fn [[h g]] (contains? #{h g} verein)) x)))
+
 (defn gegner [verein games]
-  (map (fn [[heim gast heim-goals gast-goals]]
-         (if (= verein heim) gast heim)) games))
+  (as-> games x
+        (games-of x verein)
+        (map (fn [[heim gast heim-goals gast-goals]] (if (= verein heim) gast heim)) x)))
 
 (defn scores [verein games]
-  (map (fn [[heim gast heim-goals gast-goals]]
-         (let [abwehr-score (if (= verein heim)
-                              (abwehr-score-fn gast-goals)
-                              (abwehr-score-fn heim-goals))
-               angriff-score (if (= verein heim)
-                               (score-fn heim-goals)
-                               (score-fn gast-goals))
-               ]
-           {:abwehr abwehr-score :angriff angriff-score})) games))
+  (as-> games x
+        (games-of x verein)
+        (map (fn [[heim gast heim-goals gast-goals]]
+               (let [abwehr-score (if (= verein heim)
+                                    (abwehr-score-fn gast-goals)
+                                    (abwehr-score-fn heim-goals))
+                     angriff-score (if (= verein heim)
+                                     (score-fn heim-goals)
+                                     (score-fn gast-goals))]
+                 {:abwehr abwehr-score :angriff angriff-score})) x)))
 
 (defn predict [data heim gast]
   (let [h-angriff-r  (get-in data [heim :angriff :rating])
@@ -85,7 +91,7 @@
         g-score (- 1.0  (g/E-fn (g/mu h-abwehr-r) (g/mu g-angriff-r) (g/phi g-angriff-rd )))]
     [(goal-fn h-score) (goal-fn g-score)]))
 
-(defn predict-2 [data heim gast]
+(defn predict-2 [data heim gast faktor-sigma]
   (let [h-angriff-r  (get-in data [heim :angriff :rating])
         h-angriff-rd (get-in data [heim :angriff :rating-deviation])
         h-abwehr-r  (get-in data [heim :abwehr :rating])
@@ -94,17 +100,20 @@
         g-abwehr-rd (get-in data [gast :abwehr :rating-deviation])
         g-angriff-r  (get-in data [gast :angriff :rating])
         g-angriff-rd (get-in data [gast :angriff :rating-deviation])
-        h-score-min (g/E-fn (g/mu (- h-angriff-r (* 1.0 h-angriff-rd))) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
-        h-score-max (g/E-fn (g/mu (+ h-angriff-r (* 1.0 h-angriff-rd))) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
-        g-score-max (- 1.0  (g/E-fn (g/mu (- h-abwehr-r (* 1.0 h-abwehr-rd))) (g/mu g-angriff-r) (g/phi g-angriff-rd )))
-        g-score-min (- 1.0  (g/E-fn (g/mu (+ h-abwehr-r (* 1.0 h-abwehr-rd))) (g/mu g-angriff-r) (g/phi g-angriff-rd )))]
+        h-score-min (g/E-fn (g/mu (- h-angriff-r (* faktor-sigma h-angriff-rd))) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
+        h-score-max (g/E-fn (g/mu (+ h-angriff-r (* faktor-sigma h-angriff-rd))) (g/mu g-abwehr-r) (g/phi g-abwehr-rd))
+        g-score-max (- 1.0  (g/E-fn (g/mu (- h-abwehr-r (* faktor-sigma h-abwehr-rd))) (g/mu g-angriff-r) (g/phi g-angriff-rd )))
+        g-score-min (- 1.0  (g/E-fn (g/mu (+ h-abwehr-r (* faktor-sigma h-abwehr-rd))) (g/mu g-angriff-r) (g/phi g-angriff-rd )))]
     [[(goal-fn h-score-min) (goal-fn h-score-max)] [(goal-fn g-score-min) (goal-fn g-score-max)]]))
 
-(defn predict-games-2 [data games]
-  (as-> games x
-        (map (fn [[h g ]]
-               (let [[[hmin hmax] [gmin gmax]] (predict-2 data h g)]
-                 (format "%s - %s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax))) x)))
+(defn predict-games-2
+  ([data games]
+     (predict-games-2 data games 1.0))
+  ([data games faktor-sigma]
+     (as-> games x
+           (map (fn [[h g ]]
+                  (let [[[hmin hmax] [gmin gmax]] (predict-2 data h g faktor-sigma)]
+                    (format "%s - %s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax))) x))))
 
 (defn predict-games [data games]
   (as-> games x
@@ -112,17 +121,15 @@
                (let [[h-goals g-goals] (predict data h g)]
                  (format "%s - %s   %.2f : %.2f" h g h-goals g-goals))) x)))
 
-(defn games-of [games verein]
-  (as-> games x
-        (filter (fn [[h g e]] (contains? #{h g } verein )) x)))
 
 
 (defn new-vereins-rating [data verein games]
-  (let [verein-rating (get data verein)
-        scores (scores verein games)
+  (let [games-of-verein (games-of games verein)
+        verein-rating (get data verein)
+        gegner (gegner verein games-of-verein)
+        scores (scores verein games-of-verein)
         scores-abwehr (map :abwehr scores)
         scores-angriff (map :angriff scores)
-        gegner (gegner verein games)
         old-rating-abwehr (get-in verein-rating
                                   [:abwehr :rating] )
         old-rating-deviation-abwehr (get-in verein-rating
@@ -135,7 +142,6 @@
         oppenents-rating-deviation-angriff (as-> gegner x
                                                  (map #(get data %) x)
                                                  (map #(get-in % [:angriff :rating-deviation]) x))
-        
         old-rating-angriff (get-in verein-rating
                                    [:angriff :rating] )
         old-rating-deviation-angriff (get-in verein-rating
