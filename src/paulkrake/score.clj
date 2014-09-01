@@ -175,16 +175,26 @@
         (into {} x)))
 
 (defn tabelle
-  ( [data]
-      (->> data
-           (sort-by (fn [[name m]]
-                      (let [ang-r (Math/pow  (get-in m [:angriff :rating]) 2)
-                            abw-r (Math/pow  (get-in m [:abwehr :rating])  2)]
-                        (* -1.0 (Math/sqrt (+ ang-r abw-r) )))))
-           (map (fn [[name m]] (format "%-30s : %.2f %.2f" name  (get-in m [:angriff :rating]) (get-in m [:abwehr :rating]))))
-           ))
-  ( [data angriff-abwehr-keyword]
-      (->> data
-           (sort-by (fn [[name m]] (* -1.0 (get-in m [angriff-abwehr-keyword :rating]))))
-           (map (fn [[name m]] (format "%-30s : %.2f %.2f" name  (get-in m [:angriff :rating]) (get-in m [:abwehr :rating]))))
+  ([data]
+     (->> data
+          (sort-by (fn [[name m]]
+                     (let [ang-r (Math/pow  (get-in m [:angriff :rating]) 2)
+                           abw-r (Math/pow  (get-in m [:abwehr :rating])  2)]
+                       (* -1.0 (Math/sqrt (+ ang-r abw-r) )))))
+          (map (fn [[name m]] 
+                 (format "%-25s : %.2f % 7.2f   %.2f % 7.2f" name  
+                         (get-in m [:angriff :rating]) 
+                         (get-in m [:angriff :rating-deviation])
+                         (get-in m [:abwehr :rating])
+                         (get-in m [:abwehr :rating-deviation]))))
+          (cons (format "%-25s : %7s %7s   %7s %7s" "Verein" "Ang" "std" "Abw" "std"))
+          ))
+  ([data angriff-abwehr-keyword]
+     (->> data
+          (sort-by (fn [[name m]] 
+                     (* -1.0 (get-in m [angriff-abwehr-keyword :rating]))))
+          (map (fn [[name m]] 
+                 (format "%-30s : %5.2f %5.2f" name  
+                         (get-in m [:angriff :rating]) 
+                         (get-in m [:abwehr :rating]))))
            )))
