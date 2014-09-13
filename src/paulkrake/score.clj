@@ -59,6 +59,7 @@
 
 (defn games-of [games verein]
   (as-> games x
+        (filter (fn [[h g hg gg]] (and (not (nil? hg)) (not (nil? gg)))) x)
         (filter (fn [[h g]] (contains? #{h g} verein)) x)))
 
 (defn gegner [verein games]
