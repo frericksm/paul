@@ -114,7 +114,7 @@
      (as-> games x
            (map (fn [[h g ]]
                   (let [[[hmin hmax] [gmin gmax]] (predict-2 data h g faktor-sigma)]
-                    (format "%s - %s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax))) x))))
+                    (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax))) x))))
 
 (defn predict-games [data games]
   (as-> games x
