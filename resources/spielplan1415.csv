@@ -35,15 +35,15 @@ Spieltag,Heim,Gast,Ergebnis
 4,Hamburger SV,FC Bayern München,0:0
 4,1. FC Köln,Borussia Mönchengladbach,0:0
 4,SC Paderborn 07,Hannover 96,2:0
-5,FC Bayern München,SC Paderborn 07
-5,Borussia Dortmund,VfB Stuttgart
-5,Bayer 04 Leverkusen,FC Augsburg
-5,Borussia Mönchengladbach,Hamburger SV
-5,1899 Hoffenheim,Sport-Club Freiburg
-5,Hannover 96,1. FC Köln
-5,Hertha BSC,VfL Wolfsburg
-5,SV Werder Bremen,FC Schalke 04
-5,Eintracht Frankfurt,1. FSV Mainz 05
+5,FC Bayern München,SC Paderborn 07,4:0
+5,Borussia Dortmund,VfB Stuttgart,
+5,Bayer 04 Leverkusen,FC Augsburg,
+5,Borussia Mönchengladbach,Hamburger SV,
+5,1899 Hoffenheim,Sport-Club Freiburg,3:3
+5,Hannover 96,1. FC Köln,
+5,Hertha BSC,VfL Wolfsburg,
+5,SV Werder Bremen,FC Schalke 04,0:3
+5,Eintracht Frankfurt,1. FSV Mainz 05,2:2
 6,FC Schalke 04,Borussia Dortmund
 6,VfL Wolfsburg,SV Werder Bremen
 6,1. FSV Mainz 05,1899 Hoffenheim
