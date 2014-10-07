@@ -5,18 +5,18 @@
 (def base 0.46)
 
 (def start-rating-data {:abwehr {:rating 1500.0
-                                    :rating-deviation 350.0
-                                    :volatility 0.06}
-                           :angriff {:rating 1500.0
-                                     :rating-deviation 350.0
-                                     :volatility 0.06}})
+                                 :rating-deviation 350.0
+                                 :volatility 0.06}
+                        :angriff {:rating 1500.0
+                                  :rating-deviation 350.0
+                                  :volatility 0.06}})
 
 (def aufsteiger-rating-data {:abwehr {:rating 1400.0
-                                    :rating-deviation 350.0
-                                    :volatility 0.06}
-                           :angriff {:rating 1400.0
-                                     :rating-deviation 350.0
-                                     :volatility 0.06}})
+                                      :rating-deviation 350.0
+                                      :volatility 0.06}
+                             :angriff {:rating 1400.0
+                                       :rating-deviation 350.0
+                                       :volatility 0.06}})
 
 (defn initial-rating-data [vereine]
   (reduce (fn [a v] (assoc a v start-rating-data)) {} vereine))
@@ -69,44 +69,6 @@
                                      (score-fn heim-goals)
                                      (score-fn gast-goals))]
                  {:abwehr abwehr-score :angriff angriff-score})) x)))
-
-(defn- predict [data heim gast faktor-sigma]
-  (let [h-angriff-r  (get-in data [heim :angriff :rating])
-        h-angriff-rd (get-in data [heim :angriff :rating-deviation])
-        h-abwehr-r  (get-in data [heim :abwehr :rating])
-        h-abwehr-rd (get-in data [heim :abwehr :rating-deviation])
-        g-abwehr-r  (get-in data [gast :abwehr :rating])
-        g-abwehr-rd (get-in data [gast :abwehr :rating-deviation])
-        g-angriff-r  (get-in data [gast :angriff :rating])
-        g-angriff-rd (get-in data [gast :angriff :rating-deviation])
-        h-score-min (g/E-fn (g/mu (- h-angriff-r
-                                     (* faktor-sigma h-angriff-rd)))
-                            (g/mu g-abwehr-r)
-                            (g/phi g-abwehr-rd))
-        h-score-max (g/E-fn (g/mu (+ h-angriff-r
-                                     (* faktor-sigma h-angriff-rd)))
-                            (g/mu g-abwehr-r)
-                            (g/phi g-abwehr-rd))
-        g-score-max (- 1.0  (g/E-fn (g/mu (- h-abwehr-r
-                                             (* faktor-sigma h-abwehr-rd)))
-                                    (g/mu g-angriff-r)
-                                    (g/phi g-angriff-rd )))
-        g-score-min (- 1.0  (g/E-fn (g/mu (+ h-abwehr-r
-                                             (* faktor-sigma h-abwehr-rd)))
-                                    (g/mu g-angriff-r)
-                                    (g/phi g-angriff-rd )))]
-    [[(goal-fn h-score-min) (goal-fn h-score-max)]
-     [(goal-fn g-score-min) (goal-fn g-score-max)]]))
-
-(defn predict-games
-  ([data games]
-     (predict-games data games 1.0))
-  ([data games faktor-sigma]
-     (as-> games x
-           (map (fn [[h g ]]
-                  (let [[[hmin hmax] [gmin gmax]] (predict data h g faktor-sigma)]
-                    (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]"
-                            h g hmin hmax gmin gmax))) x))))
 
 (defn new-vereins-rating [data verein games]
   (let [games-of-verein (games-of games verein)

@@ -25,7 +25,8 @@
   (as-> (slurp "resources/results1314.csv" :encoding "Cp1252") x
         (clojure.string/split x #"\n" )
         (map (fn [r] (clojure.string/split r #"," )) x)
-        (map (fn [[h g e]] (concat [h g] (clojure.string/split e #":") )) x)
+        (map (fn [[h g e]] (concat [h g] (->> (clojure.string/split e #":")
+                                             (map #(Integer/parseInt %))))) x)
         ))
 
 (defn vereine1314 []

@@ -2,6 +2,10 @@
   (:require [clojure.java.io :as io])
   )
 
+(defn parse-ergebnis [e]
+  (if (not (nil? e))
+    (->> (clojure.string/split e #":")
+         (map #(Integer/parseInt %)))))
 
 (defn spieltag [& spieltage]
   (as-> spieltage y
@@ -10,12 +14,13 @@
                      (line-seq x)
                      (map #(clojure.string/split % #",") x)
                      (filter (fn [[t]] (= t (str nr))) x  )
-                     (map (fn [[_ h g e]] (concat [h g]
-                                                 (if (not (nil? e))
-                                                   (clojure.string/split e #":")))) x)
-                     )
-               ) y)
-        (apply concat y)))
+                     (map (fn [[_ h g e t]]
+                            (concat [h g]
+                                    (parse-ergebnis e)
+                                    (parse-ergebnis t))) x)))
+             y)
+        (apply concat y)
+        (sort-by first y)))
 
 
 
