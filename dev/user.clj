@@ -7,6 +7,7 @@
         [paulkrake.spielplan]
         [paulkrake.score]
         [paulkrake.bulibox]
+        [paulkrake.datacenter]
         [paulkrake.data]
         [paulkrake.statistik]
         [paulkrake.predict]))

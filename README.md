@@ -1,10 +1,10 @@
 # paulkrake
 
-A Clojure library designed to ... well, that part is up to you.
+Data and function to "predict" results of the germna bundesliga.
 
 ## Usage
 
-FIXME
+Use the repl. 
 
 ## License
 

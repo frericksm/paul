@@ -1,3 +1,11 @@
 # Introduction to paulkrake
 
-TODO: write [great documentation](http://jacobian.org/writing/what-to-write/)
+
+evtl. die Torschuß-Statistik von
+
+http://www.sport1.de/dynamic/datencenter/sport/teamstatistik-torschuesse/fussball/bundesliga-2014-2015/
+
+verwenden...
+
+
+
