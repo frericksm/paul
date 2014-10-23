@@ -8,17 +8,17 @@
          (map #(Integer/parseInt %)))))
 
 (defn spieltag
-  ([saison spieltag]
+  ([saison spieltag-nr]
      (as-> (format "resources/spielplan%s.csv" (str saison)) x
            (io/reader x ) ;;:encoding "Cp1252" 
            (line-seq x)
            (map #(clojure.string/split % #",") x)
-           (filter (fn [[t]] (= t (str spieltag))) x  )
+           (filter (fn [[t]] (= t (str spieltag-nr))) x  )
            (map (fn [[_ h g e t]]
                   (concat [h g]
                           (parse-ergebnis e)
                           (parse-ergebnis t))) x)))
-  ([spieltag] (spieltag 1415 spieltag)))
+  ([spieltag-nr] (spieltag 1415 spieltag-nr)))
 
 
 
