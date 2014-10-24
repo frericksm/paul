@@ -150,3 +150,6 @@
                          (get-in m [:angriff :rating]) 
                          (get-in m [:abwehr :rating]))))
            )))
+
+
+

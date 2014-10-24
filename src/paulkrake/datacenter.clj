@@ -8,24 +8,24 @@
 (def ver2ver
   {"Bayer Leverkusen" "Bayer 04 Leverkusen"       
    "VfL Wolfsburg" "VfL Wolfsburg"                
-   "1. FSV Mainz 05" "FSV Mainz 05"
-   "Werder Bremen" "Werder Bremen"                
+   "1. FSV Mainz 05" "1. FSV Mainz 05"
+   "Werder Bremen" "SV Werder Bremen"                
    "VfB Stuttgart" "VfB Stuttgart"                
    ;;"Eintracht Braunschweig" ;Absteiger
    "Borussia Dortmund" "Borussia Dortmund"            
-   "Hertha BSC" "Hertha BSC Berlin"
-   "Bayern München" "FC Bayern München"            
-   "Bor. Mönchengladbach" "Borussia Mönchengladbach"     
+   "Hertha BSC" "Hertha BSC"
+   "Bayern MÃ¼nchen" "FC Bayern MÃ¼nchen"            
+   "Bor. MÃ¶nchengladbach" "Borussia MÃ¶nchengladbach"     
    "Eintracht Frankfurt" "Eintracht Frankfurt"
    "Hannover 96"  "Hannover 96"
    "1899 Hoffenheim" "1899 Hoffenheim"
    "SC Freiburg" "Sport-Club Freiburg"
-   ;;"1. FC Nürnberg"   ;Absteiger
+   ;;"1. FC NÃ¼rnberg"   ;Absteiger
    "FC Schalke 04" "FC Schalke 04"
-   "FC Augsburg" "FC Augsburg 1907"             
+   "FC Augsburg" "FC Augsburg"              
    "Hamburger SV" "Hamburger SV"
    "SC Paderborn 07" "SC Paderborn 07" ;Aufsteiger
-   "1. FC Köln" "1. FC Köln"  ;Aufsteiger
+   "1. FC KÃ¶ln" "1. FC KÃ¶ln"  ;Aufsteiger
    })
 
 (defn map-inverse [m]
@@ -49,5 +49,9 @@
         (map #(clojure.string/trim %) x)
         (drop 1 x)
         (partition 2 2 x)
-        (map (fn [[team shots]] [( get ver2ver team) shots]) x)
+        (map (fn [[team shots]] [( get ver2ver team) (Integer/parseInt shots)]) x)
+        (into {} x)
         ))
+
+
+
