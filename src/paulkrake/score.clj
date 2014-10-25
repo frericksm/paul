@@ -21,12 +21,6 @@
 (defn initial-rating-data [vereine]
   (reduce (fn [a v] (assoc a v start-rating-data)) {} vereine))
 
-(defn get-rating-data [data verein abwehr-or-sturm-keyword]
-  (get-in data [verein abwehr-or-sturm-keyword]))
-
-(defn update-rating-data [data verein abwehr-or-sturm-keyword rating-data]
-  (assoc-in data [verein abwehr-or-sturm-keyword] rating-data))
-
 (defn score-fn [number-of-goals]
   (let [goals-as-number (if (number? number-of-goals)
             number-of-goals
@@ -79,7 +73,7 @@
         scores-angriff (map :angriff scores)
         old-rating-abwehr (get-in verein-rating [:abwehr :rating] )
         old-rating-deviation-abwehr (get-in verein-rating [:abwehr :rating-deviation])
-        old-volatility (get-in verein-rating [:abwehr :volatility])
+        old-volatility-abwehr (get-in verein-rating [:abwehr :volatility])
         oppenents-rating-angriff (as-> gegner x
                                        (map #(get data %) x)
                                        (map #(get-in % [:angriff :rating]) x))
@@ -90,6 +84,7 @@
         old-rating-angriff (get-in verein-rating [:angriff :rating] )
         old-rating-deviation-angriff (get-in verein-rating
                                              [:angriff :rating-deviation])
+        old-volatility-angriff (get-in verein-rating [:angriff :volatility])
         oppenents-rating-abwehr (as-> gegner x
                                       (map #(get data %) x)
                                       (map #(get-in % [:abwehr :rating]) x))
@@ -98,13 +93,13 @@
                                                 (map #(get-in % [:abwehr :rating-deviation]) x))
         new-abwehr-rating-data (g/adjust-rating old-rating-abwehr
                                                 old-rating-deviation-abwehr
-                                                old-volatility
+                                                old-volatility-abwehr
                                                 oppenents-rating-angriff
                                                 oppenents-rating-deviation-angriff
                                                 scores-abwehr)
         new-angriff-rating-data (g/adjust-rating old-rating-angriff
                                                  old-rating-deviation-angriff
-                                                 old-volatility
+                                                 old-volatility-angriff
                                                  oppenents-rating-abwehr
                                                  oppenents-rating-deviation-abwehr
                                                  scores-angriff)
