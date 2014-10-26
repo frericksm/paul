@@ -1,5 +1,6 @@
 (ns paulkrake.spielplan
-  (:require [clojure.java.io :as io])
+  (:require [clojure.java.io :as io]
+            [paulkrake.datacenter :as d])
   )
 
 (defn parse-ergebnis [e]
@@ -22,3 +23,23 @@
 
 
 
+(defn spieltag-shots [saison spieltag-nr]
+        (let [st (spieltag saison spieltag-nr)
+              sog (d/shots-on-goal saison spieltag-nr)]
+          (as-> st x
+                (map (fn [[heim gast hg gg]]
+                       (let [h_sog (get sog heim)
+                             g_sog (get sog gast)]
+                         (vector heim gast h_sog g_sog))) x))))
+
+(defn spieltag-treffer-pro-shots [saison spieltag-nr]
+        (let [st (spieltag saison spieltag-nr)
+              sog (d/shots-on-goal saison spieltag-nr)]
+          (as-> st x
+                (map (fn [[heim gast hg gg]]
+                       (let [h_sog (get sog heim)
+                             g_sog (get sog gast)
+                             h_p (if (= h_sog 0) 0 (/ hg h_sog))
+                             g_p (if (= g_sog 0) 0 (/ gg g_sog))
+                             ]
+                         (vector heim gast h_p g_p) )) x))))
