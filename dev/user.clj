@@ -10,7 +10,9 @@
         [paulkrake.datacenter]
         [paulkrake.data]
         [paulkrake.statistik]
-        [paulkrake.predict]))
+        [paulkrake.predict]
+        [paulkrake.goals]
+        [paulkrake.shots]))
 
 ;(predict-games (adjust-ratings (ratings1415) (spieltag 1)) (spieltag 2))
 

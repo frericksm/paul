@@ -1,9 +1,6 @@
 (ns paulkrake.score
   (:require [paulkrake.glicko2 :as g]))
 
-;; Base zur Berechnung des Scores aus den Goals
-(def base 0.46)
-
 (def start-rating-data {:abwehr {:rating 1500.0
                                  :rating-deviation 350.0
                                  :volatility 0.06}
@@ -21,27 +18,6 @@
 (defn initial-rating-data [vereine]
   (reduce (fn [a v] (assoc a v start-rating-data)) {} vereine))
 
-(defn score-fn [number-of-goals]
-  (let [goals-as-number (if (number? number-of-goals)
-            number-of-goals
-            (Integer/valueOf number-of-goals))]
-    (- 1.0 (Math/pow base goals-as-number))))
-
-(defn abwehr-score-fn [number-of-goals]
-  (- 1.0 (score-fn number-of-goals)))
-
-(defn goal-fn [score]
-  (as-> (range) x
-        (partition 2 1 x)
-        (filter (fn [[a b]]
-                  (and (<= (score-fn a) score )
-                       (< score (score-fn b)))) x)
-        (map (fn [[a b]]
-               (+ a (*  (/ (- score (score-fn a)) 
-                           (- (score-fn b) (score-fn a))) 
-                        (- b a)))) x)
-        (first x)))
-
 (defn games-of [games verein]
   (as-> games x
         (filter (fn [[h g hg gg]] (and (not (nil? hg)) (not (nil? gg)))) x)
@@ -52,23 +28,24 @@
         (games-of x verein)
         (map (fn [[heim gast heim-goals gast-goals]] (if (= verein heim) gast heim)) x)))
 
-(defn scores [verein games]
-  (as-> games x
-        (games-of x verein)
-        (map (fn [[heim gast heim-goals gast-goals]]
-               (let [abwehr-score (if (= verein heim)
-                                    (abwehr-score-fn gast-goals)
-                                    (abwehr-score-fn heim-goals))
-                     angriff-score (if (= verein heim)
-                                     (score-fn heim-goals)
-                                     (score-fn gast-goals))]
-                 {:abwehr abwehr-score :angriff angriff-score})) x)))
+(defn scores [verein games score-fn]
+  (let [abwehr-score-fn (fn [v] (- 1.0 (score-fn v)))]
+    (as-> games x
+          (games-of x verein)
+          (map (fn [[heim gast heim-goals gast-goals]]
+                 (let [abwehr-score (if (= verein heim)
+                                      (abwehr-score-fn gast-goals)
+                                      (abwehr-score-fn heim-goals))
+                       angriff-score (if (= verein heim)
+                                       (score-fn heim-goals)
+                                       (score-fn gast-goals))]
+                   {:abwehr abwehr-score :angriff angriff-score})) x))))
 
-(defn new-vereins-rating [data verein games]
+(defn new-vereins-rating [data verein games score-fn]
   (let [games-of-verein (games-of games verein)
         verein-rating (get data verein)
         gegner (gegner verein games-of-verein)
-        scores (scores verein games-of-verein)
+        scores (scores verein games-of-verein score-fn)
         scores-abwehr (map :abwehr scores)
         scores-angriff (map :angriff scores)
         old-rating-abwehr (get-in verein-rating [:abwehr :rating] )
@@ -104,8 +81,7 @@
                                                  oppenents-rating-deviation-abwehr
                                                  scores-angriff)
         ]
-    {:abwehr new-abwehr-rating-data :angriff new-angriff-rating-data}
-    ))
+    {:abwehr new-abwehr-rating-data :angriff new-angriff-rating-data}))
 
 (defn vereine [games]
   (->> games
@@ -116,10 +92,13 @@
 (defn played-games [games]
   (filter (fn [[h g hg gg ]] (and (not (nil? hg) ) (not (nil? gg)))) games))
 
-(defn new-rating [data games]
+(defn new-rating [data games score-fn]
   (as-> (vereine games) x        
-        (map (fn [v] [v (new-vereins-rating data v games)]) x)
+        (map (fn [v] [v (new-vereins-rating data v games score-fn)]) x)
         (into {} x)))
+
+(defn apply-to-predicted-scores [inverse-fn [[hmin hmax] [gmin gmax]]]
+  [[(inverse-fn hmin)  (inverse-fn hmax)] [(inverse-fn gmin) (inverse-fn gmax)]])
 
 (defn tabelle
   ([data]
@@ -134,8 +113,8 @@
                          (get-in m [:angriff :rating-deviation])
                          (get-in m [:abwehr :rating])
                          (get-in m [:abwehr :rating-deviation]))))
-          (cons (format "%-25s : %7s %7s   %7s %7s" "Verein" "Ang" "std" "Abw" "std"))
-          ))
+          (cons (format "%-25s : %7s %7s   %7s %7s" "Verein" "Ang" "std" "Abw" "std"))))
+  
   ([data angriff-abwehr-keyword]
      (->> data
           (sort-by (fn [[name m]] 
@@ -143,8 +122,4 @@
           (map (fn [[name m]] 
                  (format "%-30s : %5.2f %5.2f" name  
                          (get-in m [:angriff :rating]) 
-                         (get-in m [:abwehr :rating]))))
-           )))
-
-
-
+                         (get-in m [:abwehr :rating])))))))

@@ -22,14 +22,13 @@
         g-score (g/E-fn (g/mu g-angriff-r-sampled)
                         (g/mu h-abwehr-r)
                         (g/phi h-abwehr-rd))
-
-        h-goals-float (s/goal-fn h-score)
-        g-goals-float (s/goal-fn g-score)
-        h-goals (Math/round h-goals-float)
-        g-goals (Math/round g-goals-float)]
-    [h-goals  g-goals]))
-
-
+        ;;h-goals-float (s/goal-fn h-score)
+        ;;g-goals-float (s/goal-fn g-score)
+        ;;h-goals (Math/round h-goals-float)
+        ;;g-goals (Math/round g-goals-float)
+        ]
+    ;;[h-goals  g-goals]
+    [h-score  g-score]))
 
 (defn sample-games
   [data games]
@@ -45,8 +44,6 @@
   [data games]
   (as-> (sample-games data games) x
         (map pprint-samples x)))
-
-
 
 (defn filter-samples-minimizing-chi-sq [samples]
   (let [samples-and-chi-sq (as-> samples x
@@ -75,7 +72,8 @@
       (as-> (generate-samples data games sample-size) x
             (if chi-sq? (filter-samples-minimizing-chi-sq x) x))))
 
-(defn- predict [data heim gast faktor-sigma]
+
+(defn predict [data heim gast faktor-sigma]
   (let [h-angriff-r  (get-in data [heim :angriff :rating])
         h-angriff-rd (get-in data [heim :angriff :rating-deviation])
         h-abwehr-r  (get-in data [heim :abwehr :rating])
@@ -100,16 +98,10 @@
                                              (* faktor-sigma h-abwehr-rd)))
                                     (g/mu g-angriff-r)
                                     (g/phi g-angriff-rd )))]
-    [[(s/goal-fn h-score-min) (s/goal-fn h-score-max)]
-     [(s/goal-fn g-score-min) (s/goal-fn g-score-max)]]))
+    [[h-score-min h-score-max]
+     [g-score-min g-score-max]]))
 
-
-(defn predict-games
-  ([data games]
-     (predict-games data games 1.0))
-  ([data games faktor-sigma]
-     (as-> games x
-           (map (fn [[h g ]]
-                  (let [[[hmin hmax] [gmin gmax]] (predict data h g faktor-sigma)]
-                    (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]"
-                            h g hmin hmax gmin gmax))) x))))
+(defn predict-single-game [data h g faktor-sigma inverse-score-fn]
+  (as-> (predict data h g faktor-sigma) x
+        (s/apply-to-predicted-scores inverse-score-fn x)
+        (concat [h g] x)))
