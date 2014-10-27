@@ -32,6 +32,9 @@
                              g_sog (get sog gast)]
                          (vector heim gast h_sog g_sog))) x))))
 
+(defn rounded [x]
+  (as-> x z (* 100.0 z) (Math/round z) (/ z 100.0)))
+
 (defn spieltag-treffer-pro-shots [saison spieltag-nr]
         (let [st (spieltag saison spieltag-nr)
               sog (d/shots-on-goal saison spieltag-nr)]
@@ -39,7 +42,7 @@
                 (map (fn [[heim gast hg gg]]
                        (let [h_sog (get sog heim)
                              g_sog (get sog gast)
-                             h_p (if (= h_sog 0) 0 (/ hg h_sog))
-                             g_p (if (= g_sog 0) 0 (/ gg g_sog))
+                             h_p (if (= h_sog 0) 0 (rounded (/ hg h_sog)))
+                             g_p (if (= g_sog 0) 0 (rounded (/ gg g_sog)))
                              ]
                          (vector heim gast h_p g_p) )) x))))
