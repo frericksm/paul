@@ -38,3 +38,4 @@
         (reduce (fn [a i] (new-rating-shots a
                                            (sp/spieltag-shots 1415 i)))
                 x (range 1 spieltag-nr))))
+

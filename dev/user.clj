@@ -12,7 +12,8 @@
         [paulkrake.statistik]
         [paulkrake.predict]
         [paulkrake.goals]
-        [paulkrake.shots]))
+        [paulkrake.shots]
+        [paulkrake.goals-per-shots]))
 
 ;(predict-games (adjust-ratings (ratings1415) (spieltag 1)) (spieltag 2))
 

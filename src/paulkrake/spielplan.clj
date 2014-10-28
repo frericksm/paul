@@ -33,7 +33,9 @@
                          (vector heim gast h_sog g_sog))) x))))
 
 (defn rounded [x]
-  (as-> x z (* 100.0 z) (Math/round z) (/ z 100.0)))
+  (as-> x z (* 100.0 z) (Math/round z)
+        ;(/ z 100.0)
+        ))
 
 (defn spieltag-treffer-pro-shots [saison spieltag-nr]
         (let [st (spieltag saison spieltag-nr)

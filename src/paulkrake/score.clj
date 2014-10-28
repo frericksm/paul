@@ -1,5 +1,6 @@
 (ns paulkrake.score
-  (:require [paulkrake.glicko2 :as g]))
+  (:require [paulkrake.glicko2 :as g]
+            [incanter.distributions :as d]))
 
 (def start-rating-data {:abwehr {:rating 1500.0
                                  :rating-deviation 350.0
@@ -123,3 +124,12 @@
                  (format "%-30s : %5.2f %5.2f" name  
                          (get-in m [:angriff :rating]) 
                          (get-in m [:abwehr :rating])))))))
+
+(defn find-mean [saison spieltag-nr spieltag-fn]
+  (as-> (range 1 spieltag-nr) x
+        (map #(spieltag-fn saison %) x)
+        (apply concat x)
+        (map (fn [[_ _ h g]] [h g]) x)
+        (apply concat x)
+        (d/mean x)
+        (double x)))
