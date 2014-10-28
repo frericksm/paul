@@ -2,6 +2,8 @@
   (:require [paulkrake.score :as s]
             [paulkrake.predict :as p]
             [paulkrake.spielplan :as sp]
+            [paulkrake.shots :as shots]
+            [paulkrake.goals-per-shots :as gps]
             [incanter.distributions :as d]))
 
 (defn goals-to-score-fn
@@ -39,3 +41,17 @@
         (reduce (fn [a i] (new-rating-goals a
                                            (sp/spieltag 1415 i)))
                 x (range 1 spieltag-nr))))
+
+
+(defn predict-3
+  ([shots-data gps-data games]
+     (predict-3 shots-data gps-data games 1.0))
+  ([shots-data gps-data games faktor-sigma]
+     
+     (as-> games x
+           (map (fn [[ h g]]
+
+                  (let [[_ _ [shots-hmin shots-hmax] [shots-gmin shots-gmax]] (p/predict-single-game shots-data h g faktor-sigma shots/score-to-shots-fn)
+                        [_ _ [gps-hmin gps-hmax] [gps-gmin gps-gmax]] (p/predict-single-game gps-data h g faktor-sigma gps/score-to-gps-fn)]
+                    [h g [(* shots-hmin gps-hmin 1/100) (* shots-hmax gps-hmax 1/100)] [(* shots-gmin gps-gmin 1/100) (* shots-gmax gps-gmax 1/100)] ])) x)
+           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
