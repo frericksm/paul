@@ -36,6 +36,6 @@
 (defn gps-data [saison spieltag-nr]
   (as-> (s/initial-rating-data (s/vereine (sp/spieltag saison 1))) x
         (reduce (fn [a i] (new-rating-gps a
-                                         (sp/spieltag-treffer-pro-shots 1415 i)))
+                                         (sp/spieltag-treffer-pro-shots saison i)))
                 x (range 1 spieltag-nr))))
 

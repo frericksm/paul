@@ -37,9 +37,9 @@
 
 
 (defn goals-data [saison spieltag-nr]
-  (as-> (s/initial-rating-data (s/vereine (sp/spieltag 1415 1))) x
+  (as-> (s/initial-rating-data (s/vereine (sp/spieltag saison 1))) x
         (reduce (fn [a i] (new-rating-goals a
-                                           (sp/spieltag 1415 i)))
+                                           (sp/spieltag saison i)))
                 x (range 1 spieltag-nr))))
 
 

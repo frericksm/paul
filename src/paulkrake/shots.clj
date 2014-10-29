@@ -34,8 +34,8 @@
            (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
 
 (defn shots-data [saison spieltag-nr]
-  (as-> (s/initial-rating-data (s/vereine (sp/spieltag 1415 1))) x
+  (as-> (s/initial-rating-data (s/vereine (sp/spieltag saison 1))) x
         (reduce (fn [a i] (new-rating-shots a
-                                           (sp/spieltag-shots 1415 i)))
+                                           (sp/spieltag-shots saison i)))
                 x (range 1 spieltag-nr))))
 
