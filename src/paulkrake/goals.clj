@@ -4,6 +4,7 @@
             [paulkrake.spielplan :as sp]
             [paulkrake.shots :as shots]
             [paulkrake.goals-per-shots :as gps]
+            [paulkrake.shots :as shots]
             [incanter.distributions :as d]))
 
 (defn goals-to-score-fn
@@ -27,31 +28,33 @@
 (defn new-rating-goals [data games]
   (s/new-rating data games goals-to-score-fn))
 
-(defn predict-goals
-  ([data games]
-     (predict-goals data games 1.0))
-  ([data games faktor-sigma]
-     (as-> games x
-           (map (fn [[ h g]] (p/predict-single-game data h g faktor-sigma score-to-goals-fn)) x)
-           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
-
-
 (defn goals-data [saison spieltag-nr]
   (as-> (s/initial-rating-data (s/vereine (sp/spieltag saison 1))) x
         (reduce (fn [a i] (new-rating-goals a
                                            (sp/spieltag saison i)))
                 x (range 1 spieltag-nr))))
 
+(defn predict-goals
+  ([saison spieltag-nr]
+     (predict-goals saison spieltag-nr 0.0))
+  ([saison spieltag-nr faktor-sigma]
+     (let [data (goals-data saison spieltag-nr)
+           games      (sp/spieltag saison spieltag-nr)]
+       (as-> games x
+           (map (fn [[ h g]] (p/predict-single-game data h g faktor-sigma score-to-goals-fn)) x)
+           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x)))))
 
-(defn predict-3
-  ([shots-data gps-data games]
-     (predict-3 shots-data gps-data games 1.0))
-  ([shots-data gps-data games faktor-sigma]
-     
-     (as-> games x
-           (map (fn [[ h g]]
-
-                  (let [[_ _ [shots-hmin shots-hmax] [shots-gmin shots-gmax]] (p/predict-single-game shots-data h g faktor-sigma shots/score-to-shots-fn)
-                        [_ _ [gps-hmin gps-hmax] [gps-gmin gps-gmax]] (p/predict-single-game gps-data h g faktor-sigma gps/score-to-gps-fn)]
-                    [h g [(* shots-hmin gps-hmin 1/100) (* shots-hmax gps-hmax 1/100)] [(* shots-gmin gps-gmin 1/100) (* shots-gmax gps-gmax 1/100)] ])) x)
-           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
+(defn predict
+  ([saison spieltag-nr]
+     (predict saison spieltag-nr 0.0))
+  ([saison spieltag-nr faktor-sigma]
+     (let [shots-data (shots/shots-data saison spieltag-nr)
+           gps-data   (gps/gps-data saison spieltag-nr)
+           games      (sp/spieltag saison spieltag-nr)]
+       (as-> games x
+             (map (fn [[ h g]]
+                    (let [[_ _ [shots-hmin shots-hmax] [shots-gmin shots-gmax]] (p/predict-single-game shots-data h g faktor-sigma shots/score-to-shots-fn)
+                          [_ _ [gps-hmin gps-hmax] [gps-gmin gps-gmax]] (p/predict-single-game gps-data h g faktor-sigma gps/score-to-gps-fn)]
+                      [h g [(* shots-hmin gps-hmin 1/100) (* shots-hmax gps-hmax 1/100)] [(* shots-gmin gps-gmin 1/100) (* shots-gmax gps-gmax 1/100)] ])) x)
+             (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))
+       )))

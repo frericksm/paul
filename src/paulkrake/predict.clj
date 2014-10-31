@@ -73,7 +73,7 @@
             (if chi-sq? (filter-samples-minimizing-chi-sq x) x))))
 
 
-(defn predict [data heim gast faktor-sigma]
+(defn- predict [data heim gast faktor-sigma]
   (let [h-angriff-r  (get-in data [heim :angriff :rating])
         h-angriff-rd (get-in data [heim :angriff :rating-deviation])
         h-abwehr-r  (get-in data [heim :abwehr :rating])
