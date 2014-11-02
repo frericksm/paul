@@ -11,7 +11,7 @@
   "Maps number-of-goals to a score value from [0 1]. The mean of goals per game is 1.36"
   [goals]
   (let [goals-as-number (if (number? goals) goals (Integer/valueOf goals))]
-    (d/cdf (d/poisson-distribution 1.36) goals-as-number)))
+    (d/cdf (d/normal-distribution 1.36 (Math/sqrt 0.5)) goals-as-number)))
 
 (defn score-to-goals-fn [score]
   (as-> (range -1 100) x
@@ -34,15 +34,19 @@
                                            (sp/spieltag saison i)))
                 x (range 1 spieltag-nr))))
 
+(defn predict-goals-on-data
+  ([data games]
+     (predict-goals-on-data data games 0.0))
+  ([data games faktor-sigma]
+     (as-> games x
+           (map (fn [[ h g]] (p/predict-single-game data h g faktor-sigma score-to-goals-fn)) x)
+           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
+
 (defn predict-goals
   ([saison spieltag-nr]
      (predict-goals saison spieltag-nr 0.0))
   ([saison spieltag-nr faktor-sigma]
-     (let [data (goals-data saison spieltag-nr)
-           games      (sp/spieltag saison spieltag-nr)]
-       (as-> games x
-           (map (fn [[ h g]] (p/predict-single-game data h g faktor-sigma score-to-goals-fn)) x)
-           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x)))))
+     (predict-goals-on-data (goals-data saison spieltag-nr) (sp/spieltag saison spieltag-nr) faktor-sigma)))
 
 (defn predict
   ([saison spieltag-nr]
