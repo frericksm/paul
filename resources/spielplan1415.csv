@@ -1,13 +1,4 @@
 Spieltag,Heim,Gast,Ergebnis
-11,Borussia Dortmund,Borussia Mönchengladbach,
-11,Bayer 04 Leverkusen,1. FSV Mainz 05,
-11,VfL Wolfsburg,Hamburger SV,
-11,FC Augsburg,SC Paderborn 07,
-11,1899 Hoffenheim,1. FC Köln,
-11,Hertha BSC,Hannover 96,
-11,SV Werder Bremen,VfB Stuttgart,
-11,Eintracht Frankfurt,FC Bayern München,
-11,Sport-Club Freiburg,FC Schalke 04,
 12,FC Bayern München,1899 Hoffenheim,
 12,FC Schalke 04,VfL Wolfsburg,
 12,Borussia Mönchengladbach,Eintracht Frankfurt,
@@ -305,3 +296,12 @@ Spieltag,Heim,Gast,Ergebnis
 10,Hamburger SV,Bayer 04 Leverkusen,1:0
 10,1. FC Köln,Sport-Club Freiburg,0:1
 10,SC Paderborn 07,Hertha BSC,3:1
+11,Borussia Dortmund,Borussia Mönchengladbach,1:0
+11,Bayer 04 Leverkusen,1. FSV Mainz 05,0:0
+11,VfL Wolfsburg,Hamburger SV,2:0
+11,FC Augsburg,SC Paderborn 07,3:0
+11,1899 Hoffenheim,1. FC Köln,3:4
+11,Hertha BSC,Hannover 96,0:2
+11,SV Werder Bremen,VfB Stuttgart,2:0
+11,Eintracht Frankfurt,FC Bayern München,0:4
+11,Sport-Club Freiburg,FC Schalke 04,2:0
