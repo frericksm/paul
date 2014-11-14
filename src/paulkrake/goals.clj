@@ -11,7 +11,8 @@
   "Maps number-of-goals to a score value from [0 1]. The mean of goals per game is 1.36"
   [goals]
   (let [goals-as-number (if (number? goals) goals (Integer/valueOf goals))]
-    (d/cdf (d/normal-distribution 1.36 (Math/sqrt 0.5)) goals-as-number)))
+    (d/cdf (d/poisson-distribution (* 2  1.36) ) (* 2 goals-as-number)) ;; * 2 to smooth the poisson distribution
+    ))
 
 (defn score-to-goals-fn [score]
   (as-> (range -1 100) x
@@ -59,6 +60,6 @@
              (map (fn [[ h g]]
                     (let [[_ _ [shots-hmin shots-hmax] [shots-gmin shots-gmax]] (p/predict-single-game shots-data h g faktor-sigma shots/score-to-shots-fn)
                           [_ _ [gps-hmin gps-hmax] [gps-gmin gps-gmax]] (p/predict-single-game gps-data h g faktor-sigma gps/score-to-gps-fn)]
-                      [h g [(* shots-hmin gps-hmin 1/100) (* shots-hmax gps-hmax 1/100)] [(* shots-gmin gps-gmin 1/100) (* shots-gmax gps-gmax 1/100)] ])) x)
+                      [h g [(* shots-hmin gps-hmin 1) (* shots-hmax gps-hmax 1)] [(* shots-gmin gps-gmin 1) (* shots-gmax gps-gmax 1)] ])) x)
              (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))
        )))
