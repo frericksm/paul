@@ -34,7 +34,7 @@
 
 (defn rounded [x]
   (as-> x z (* 100.0 z) (Math/round z)
-        ;(/ z 100.0)
+        (/ z 100.0)
         ))
 
 (defn spieltag-treffer-pro-shots [saison spieltag-nr]

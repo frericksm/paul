@@ -8,7 +8,9 @@
   "Maps number of gps to a score value from [0 1].
    The mean of gps per game is 0.1177"
   [gps]
-  (d/cdf (d/poisson-distribution 11.77) gps))
+  ;;(d/cdf (d/poisson-distribution 11.77) gps)
+  gps
+  )
 
 (defn score-to-gps-fn [score]
   (as-> (range -1 100) x
