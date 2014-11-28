@@ -2,6 +2,7 @@
   (:require [paulkrake.score :as s]
             [paulkrake.predict :as p]
             [paulkrake.spielplan :as sp]
+			[paulkrake.datacenter :as dc]
             [paulkrake.shots :as shots]
             [paulkrake.goals-per-shots :as gps]
             [paulkrake.shots :as shots]
@@ -30,9 +31,9 @@
   (s/new-rating data games goals-to-score-fn))
 
 (defn goals-data [saison spieltag-nr]
-  (as-> (s/initial-rating-data (s/vereine (sp/spieltag saison 1))) x
+  (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x
         (reduce (fn [a i] (new-rating-goals a
-                                           (sp/spieltag saison i)))
+                                           (dc/spieltag saison i)))
                 x (range 1 spieltag-nr))))
 
 (defn predict-goals-on-data
@@ -47,7 +48,7 @@
   ([saison spieltag-nr]
      (predict-goals saison spieltag-nr 0.0))
   ([saison spieltag-nr faktor-sigma]
-     (predict-goals-on-data (goals-data saison spieltag-nr) (sp/spieltag saison spieltag-nr) faktor-sigma)))
+     (predict-goals-on-data (goals-data saison spieltag-nr) (dc/spieltag saison spieltag-nr) faktor-sigma)))
 
 (defn predict
   ([saison spieltag-nr]
@@ -55,7 +56,7 @@
   ([saison spieltag-nr faktor-sigma]
      (let [shots-data (shots/shots-data saison spieltag-nr)
            gps-data   (gps/gps-data saison spieltag-nr)
-           games      (sp/spieltag saison spieltag-nr)]
+           games      (dc/spieltag saison spieltag-nr)]
        (as-> games x
              (map (fn [[ h g]]
                     (let [[_ _ [shots-hmin shots-hmax] [shots-gmin shots-gmax]] (p/predict-single-game shots-data h g faktor-sigma shots/score-to-shots-fn)

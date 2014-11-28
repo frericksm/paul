@@ -8,7 +8,7 @@
     (->> (clojure.string/split e #":")
          (map #(Integer/parseInt %)))))
 
-(defn spieltag
+(defn _spieltag
   ([saison spieltag-nr]
      (as-> (format "resources/spielplan%s.csv" (str saison)) x
            (io/reader x ) ;;:encoding "Cp1252" 
@@ -19,12 +19,12 @@
                   (concat [h g]
                           (parse-ergebnis e)
                           (parse-ergebnis t))) x)))
-  ([spieltag-nr] (spieltag 1415 spieltag-nr)))
+  ([spieltag-nr] (_spieltag 1415 spieltag-nr)))
 
 
 
 (defn spieltag-shots [saison spieltag-nr]
-        (let [st (spieltag saison spieltag-nr)
+        (let [st (d/spieltag saison spieltag-nr)
               sog (d/shots-on-goal saison spieltag-nr)]
           (as-> st x
                 (map (fn [[heim gast hg gg]]
@@ -37,8 +37,9 @@
         (/ z 100.0)
         ))
 
+
 (defn spieltag-treffer-pro-shots [saison spieltag-nr]
-        (let [st (spieltag saison spieltag-nr)
+        (let [st (d/spieltag saison spieltag-nr)
               sog (d/shots-on-goal saison spieltag-nr)]
           (as-> st x
                 (map (fn [[heim gast hg gg]]

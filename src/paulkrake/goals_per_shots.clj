@@ -2,6 +2,7 @@
   (:require [paulkrake.score :as s]
             [paulkrake.predict :as p]
             [paulkrake.spielplan :as sp]
+            [paulkrake.datacenter :as dc]
             [incanter.distributions :as d]))
 
 (defn gps-to-score-fn
@@ -36,7 +37,7 @@
            (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
 
 (defn gps-data [saison spieltag-nr]
-  (as-> (s/initial-rating-data (s/vereine (sp/spieltag saison 1))) x
+  (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x
         (reduce (fn [a i] (new-rating-gps a
                                          (sp/spieltag-treffer-pro-shots saison i)))
                 x (range 1 spieltag-nr))))

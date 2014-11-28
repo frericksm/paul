@@ -2,7 +2,8 @@
   (:require [paulkrake.glicko2 :as g]
             [incanter.stats :as is]
             [paulkrake.bulibox :as b]
-            [paulkrake.spielplan :as sp]))
+            [paulkrake.spielplan :as sp]
+			[paulkrake.datacenter :as dc]))
 
 
 (defn chisq-class
@@ -46,11 +47,11 @@
 
 
 (defn probs-home-goals-per-gameday []
-  (as-> (concat (b/results1314) (sp/spieltag 1 2 3 4 5 6 7)) x 
+  (as-> (concat (b/results1314) (dc/spieltag 1 2 3 4 5 6 7)) x 
         (probabilities-goals-home x)))
 
 (defn probs-guest-goals-per-gameday []
-  (as-> (concat (b/results1314) (sp/spieltag 1 2 3 4 5 6 7)) x 
+  (as-> (concat (b/results1314) (dc/spieltag 1 2 3 4 5 6 7)) x 
         (probabilities-goals-guest x)))
 
 
