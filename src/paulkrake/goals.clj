@@ -30,11 +30,15 @@
 (defn new-rating-goals [data games]
   (s/new-rating data games goals-to-score-fn))
 
-(defn goals-data [saison spieltag-nr]
-  (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x
-        (reduce (fn [a i] (new-rating-goals a
-                                           (dc/spieltag saison i)))
-                x (range 1 spieltag-nr))))
+(defn goals-data
+  ([saison spieltag-nr-von spieltag-nr-bis]
+     (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x
+           (reduce (fn [a i] (new-rating-goals a
+                                              (dc/spieltag saison i)))
+                   x (range spieltag-nr-von spieltag-nr-bis))))
+  ([saison spieltag-nr-bis]
+     (goals-data saison 1 spieltag-nr-bis)))
+
 
 (defn predict-goals-on-data
   ([data games]
