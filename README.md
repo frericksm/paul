@@ -1,6 +1,6 @@
 # paulkrake
 
-Data and function to "predict" results of the germna bundesliga.
+Data and function to "predict" results of the german bundesliga.
 
 ## Usage
 
