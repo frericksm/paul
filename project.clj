@@ -12,4 +12,4 @@
                                   [org.clojure/java.classpath "0.2.0"]]}}
   :repl-options {:port 4555}
   :plugins [[cider/cider-nrepl "0.7.0"]]
-  )
+)

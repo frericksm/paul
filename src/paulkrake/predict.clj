@@ -105,3 +105,13 @@
   (as-> (predict data h g faktor-sigma) x
         (s/apply-to-predicted-scores inverse-score-fn x)
         (concat [h g] x)))
+
+(defn predict-on-data [data games faktor-sigma score-to-value-fn]
+  (as-> games x
+        (map (fn [[ h g]]
+               (predict-single-game data h g
+                                    faktor-sigma
+                                    score-to-value-fn)) x)
+        (map (fn [[h g [hmin hmax] [gmin gmax]]]
+               (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]"
+                       h g hmin hmax gmin gmax)) x)))

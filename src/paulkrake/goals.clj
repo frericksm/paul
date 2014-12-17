@@ -39,14 +39,11 @@
   ([saison spieltag-nr-bis]
      (goals-data saison 1 spieltag-nr-bis)))
 
-
 (defn predict-goals-on-data
   ([data games]
      (predict-goals-on-data data games 0.0))
   ([data games faktor-sigma]
-     (as-> games x
-           (map (fn [[ h g]] (p/predict-single-game data h g faktor-sigma score-to-goals-fn)) x)
-           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
+     (p/predict-on-data data games faktor-sigma score-to-goals-fn)))
 
 (defn predict-goals
   ([saison spieltag-nr]
