@@ -34,9 +34,13 @@
            (map (fn [[ h g]] (p/predict-single-game data h g faktor-sigma score-to-shots-fn)) x)
            (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
 
-(defn shots-data [saison spieltag-nr]
-  (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x
-        (reduce (fn [a i] (new-rating-shots a
-                                           (sp/spieltag-shots saison i)))
-                x (range 1 spieltag-nr))))
+(defn shots-data
+  ([saison spieltag-nr-von spieltag-nr-bis]
+     (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x
+           (reduce (fn [a i]
+                     (new-rating-shots a
+                                       (sp/spieltag-shots saison i)))
+                   x (range spieltag-nr-von spieltag-nr-bis))))
+  ([saison spieltag-nr-bis]
+     (shots-data saison 1 spieltag-nr-bis)))
 

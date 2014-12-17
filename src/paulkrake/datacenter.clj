@@ -11,30 +11,6 @@
 
 (def ergebnisse  "http://www.sport1.de/dynamic/datencenter/sport/ergebnisse/fussball/bundesliga-20%s-20%s/_r26201_/_m%s_/")
 
-
-(def ver2ver
-  {"Bayer Leverkusen" "Bayer 04 Leverkusen"       
-   "VfL Wolfsburg" "VfL Wolfsburg"                
-   "1. FSV Mainz 05" "1. FSV Mainz 05"
-   "Werder Bremen" "SV Werder Bremen"                
-   "VfB Stuttgart" "VfB Stuttgart"                
-   ;;"Eintracht Braunschweig" ;Absteiger
-   "Borussia Dortmund" "Borussia Dortmund"            
-   "Hertha BSC" "Hertha BSC"
-   "Bayern München" "FC Bayern München"            
-   "Bor. Mönchengladbach" "Borussia Mönchengladbach"     
-   "Eintracht Frankfurt" "Eintracht Frankfurt"
-   "Hannover 96"  "Hannover 96"
-   "1899 Hoffenheim" "1899 Hoffenheim"
-   "SC Freiburg" "Sport-Club Freiburg"
-   ;;"1. FC Nürnberg"   ;Absteiger
-   "FC Schalke 04" "FC Schalke 04"
-   "FC Augsburg" "FC Augsburg"              
-   "Hamburger SV" "Hamburger SV"
-   "SC Paderborn 07" "SC Paderborn 07" ;Aufsteiger
-   "1. FC Köln" "1. FC Köln"  ;Aufsteiger
-   })
-
 (defn to-num [x]
   (cond (number? x) x
         (= "-" x)   x
@@ -82,7 +58,11 @@
         )
   )
 
+
+
+
 (defn data [saison spieltag kategorie]
+  
   (as-> datacenter-uri x
         (format x
                 kategorie
