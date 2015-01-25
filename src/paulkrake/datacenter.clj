@@ -4,10 +4,6 @@
             [paulkrake.glicko2 :as g]
             [clojure.data.json :as json]))
 
-(def kategorien ["tore" "gegentore" "ballbesitz" "zweikaempfe"
-                 "laufstrecke" "karten" "torschuesse" "top-speed"
-                 "gefoult" "gefoult-worden" "ecken" "sprints" ])
-
 (defn to-clj-unmemoized [uri]
   (->> uri slurp json/read-str ))
 
@@ -20,7 +16,8 @@
 (defn team-stats-by-match [match-id team-id]
   (as-> "http://sportsapi.sport1.de/team-stats-by-match/ma%s/te%s" x
         (format x match-id team-id)
-        (to-clj x)))
+        (to-clj x)
+        (first x)))
 
 (defn season-by-competition [saison]
   (let [name (format "20%s/20%s" 
@@ -84,22 +81,32 @@
                       (vector home away hg ag)))
              x)))
 
-
 (defn map-inverse [m]
   (as-> m x
         (map (fn [[k v]] [v k]) x)
-        (into {} x)
-        )
-  )
+        (into {} x)))
 
-
-
-
-(defn data [saison spieltag kategorie])
-
+(defn data [saison spieltag-nr kategorie]
+  (as-> (season-by-competition saison) x
+        (get x "id")
+        (matches-by-season x spieltag-nr)
+        (get x "round")
+        (first x)
+        (get x "match")
+        (map (fn [m] (let [home     (get-in m ["home" "name"])
+                          away     (get-in m ["away" "name"])
+                          home-id  (get-in m ["home" "id"]) 
+                          away-id  (get-in m ["away" "id"])
+                          match-id (get m "id")
+                          hg       (-> (team-stats-by-match match-id home-id)
+                                       (get kategorie))
+                          ag       (-> (team-stats-by-match match-id away-id)
+                                       (get kategorie))]
+                      (vector home away hg ag)))
+             x)))
 
 (defn shots-on-goal [saison spieltag]
-  (data saison spieltag "torschuesse"))
+  (data saison spieltag "shots"))
 
 (defn tore [saison spieltag]
   (data saison spieltag "tore"))
