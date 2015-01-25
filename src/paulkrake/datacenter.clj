@@ -1,15 +1,51 @@
 (ns paulkrake.datacenter
   (:require [net.cgrand.enlive-html :as html]
             [paulkrake.score :as s]
-            [paulkrake.glicko2 :as g]))
+            [paulkrake.glicko2 :as g]
+            [clojure.data.json :as json]))
 
-(def kategorien ["tore" "gegentore" "ballbesitz" "zweikaempfe"
-                 "laufstrecke" "karten" "torschuesse" "top-speed"
-                 "gefoult" "gefoult-worden" "ecken" "sprints" ])
+(defn to-clj-unmemoized [uri]
+  (->> uri slurp json/read-str ))
 
-(def datacenter-uri "http://www.sport1.de/dynamic/datencenter/sport/teamstatistik-%s/fussball/bundesliga-20%s-20%s/_r26201_/_m%s_/")
+(def to-clj (memoize to-clj-unmemoized))
 
-(def ergebnisse  "http://www.sport1.de/dynamic/datencenter/sport/ergebnisse/fussball/bundesliga-20%s-20%s/_r26201_/_m%s_/")
+(defn competitions []
+  (as-> "http://sportsapi.sport1.de/competition/co12" x
+        (to-clj x)))
+
+(defn team-stats-by-match [match-id team-id]
+  (as-> "http://sportsapi.sport1.de/team-stats-by-match/ma%s/te%s" x
+        (format x match-id team-id)
+        (to-clj x)
+        (first x)))
+
+(defn season-by-competition [saison]
+  (let [name (format "20%s/20%s" 
+                (apply str (take 2 (str saison)))
+                (apply str (drop 2 (str saison))))]
+    (as-> "http://sportsapi.sport1.de/seasons-by-competition/co12" x
+          (to-clj x)
+          (get x "season")
+          (filter #(= name (get % "name")) x)
+          (first x))))
+
+(defn rounds-by-season [saison]
+  (as-> (format "http://sportsapi.sport1.de/rounds-by-season/se%s" (str saison)) x
+        (to-clj x)))
+
+(defn matches-by-season
+  ([]
+     (to-clj "http://sportsapi.sport1.de/matches-by-season/co12"))
+
+  ([saison-id]
+      (as-> (format "http://sportsapi.sport1.de/matches-by-season/co12/se%s" (str saison-id)) x
+            (to-clj x)))
+
+  ([saison-id spieltag]
+     (as-> (format "http://sportsapi.sport1.de/matches-by-season/co12/se%s/md%s"
+                   (str saison-id)
+                   (str spieltag)) x
+            (to-clj x))))
 
 (defn to-num [x]
   (cond (number? x) x
@@ -21,69 +57,56 @@
        (map to-num)))
 
 (defn spieltag [saison spieltag-nr]
-  (as-> ergebnisse x
-        (format x
-                (apply str (take 2 (str saison)))
-                (apply str (drop 2 (str saison)))
-                (str spieltag-nr))
-        (html/html-resource (java.net.URL. x))
-        (html/select x #{[:.wfb_football_table :tr :td :a]})
-        (map :content x)        
-        (flatten x)
-        (filter #(not (nil? %)) x)
-        (map (fn [r] (cond
-                     (string? r) (clojure.string/trim r)
-                     (map? r)   (:content r)
-                     )) x)
-        (flatten x)
-        (filter #(not (empty? %)) x)
-        (reduce (fn [a d] (if (or (.startsWith d ":")
-                                 (nil? a)
-                                 (.endsWith a ":"))
-                           (str a d )
-                           (str a "," d)
-                           ))
-                nil x)
-        (clojure.string/split x #",")
-        (if (contains? (set x) "-:-") (partition 3 3 x) (partition 4 4 x))
-        (map (fn [[h g ergebnis halbzeitstand]] 
-               (concat [h g] 
-                       (split-ergebnis ergebnis))) x)))
-
+  (as-> (season-by-competition saison) x
+        (get x "id")
+        (matches-by-season x spieltag-nr)
+        (get x "round")
+        (first x)
+        (get x "match")
+        (map (fn [m] (let [home     (get-in m ["home" "name"])
+                          away     (get-in m ["away" "name"])
+                          finished (= "yes" (get m "finished"))
+                          hg       (if finished (as-> m y
+                                                      (get y "match_result")
+                                                      (filter #(and (= "home" (get % "place"))
+                                                                    (= "0" (get % "match_result_at"))) y)
+                                                      (map #(get % "match_result") y)
+                                                      (first y)))
+                          ag       (if finished (as-> m y
+                                                      (get y "match_result")
+                                                      (filter #(and (= "away" (get % "place"))
+                                                                    (= "0" (get % "match_result_at"))) y)
+                                                      (map #(get % "match_result") y)
+                                                      (first y)))]
+                      (vector home away hg ag)))
+             x)))
 
 (defn map-inverse [m]
   (as-> m x
         (map (fn [[k v]] [v k]) x)
-        (into {} x)
-        )
-  )
+        (into {} x)))
 
-
-
-
-(defn data [saison spieltag kategorie]
-  
-  (as-> datacenter-uri x
-        (format x
-                kategorie
-                (apply str (take 2 (str saison)))
-                (apply str (drop 2 (str saison)))
-                (str spieltag))
-        (html/html-resource (java.net.URL. x))
-        (html/select x #{[:.wfb_team_name]
-                         [:#wfb_teamstats-container :.wfb_team_value]})
-        (map :content x)
-        (map last x)
-        (map #(clojure.string/trim %) x)
-        (drop 1 x)
-        (partition 2 2 x)
-        (map (fn [[team shots]] [team (Integer/parseInt shots)]) x)
-        (into {} x)
-        ))
-
+(defn data [saison spieltag-nr kategorie]
+  (as-> (season-by-competition saison) x
+        (get x "id")
+        (matches-by-season x spieltag-nr)
+        (get x "round")
+        (first x)
+        (get x "match")
+        (map (fn [m] (let [home     (get-in m ["home" "name"])
+                          away     (get-in m ["away" "name"])
+                          home-id  (get-in m ["home" "id"]) 
+                          away-id  (get-in m ["away" "id"])
+                          match-id (get m "id")
+                          hg       (-> (team-stats-by-match match-id home-id)
+                                       (get kategorie))
+                          ag       (-> (team-stats-by-match match-id away-id)
+                                       (get kategorie))]
+                      (vector home away hg ag)))
+             x)))
 
 (defn shots-on-goal [saison spieltag]
-  (data saison spieltag "torschuesse"))
+  (data saison spieltag "shots"))
 
 (defn tore [saison spieltag]
   (data saison spieltag "tore"))
