@@ -6,8 +6,12 @@
                  [incanter "1.5.5"]
                  [org.clojure/data.json "0.2.5"]])
 
-(deftask dev
-  "Profile setup for development"
+(task-options!
+ repl {:server true
+       :port 44444})
+
+(deftask develop
+  "Setup for development"
   []
   (set-env! :source-paths #(conj % "dev"))
   (set-env! :dependencies
@@ -18,8 +22,10 @@
   identity)
 
 (deftask dev-repl
-  "Start repl with dev classpath"
+  "Start repl with extended develop classpath"
   []
-  (comp (dev)
-        (repl :server true :port 44444)
+  (comp (develop)
+        (repl)
         (wait)))
+
+
