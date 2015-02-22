@@ -8,7 +8,8 @@
 
 (task-options!
  repl {:server true
-       :port 44444})
+       :port 44444
+       :init-ns 'user})
 
 (deftask develop
   "Setup for development"
