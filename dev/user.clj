@@ -17,14 +17,6 @@
         [paulkrake.shots]
         [paulkrake.goals-per-shots]))
 
-;(predict-games (adjust-ratings (ratings1415) (spieltag 1)) (spieltag 2))
-
-
-(as-> (range 8) x
-            (map #(read-rating-data 1415 %) x)
-            (map #(get-in % ["Hamburger SV" :angriff :rating]) x)
-            )
-
 (def system nil)
 
 (defn init []
