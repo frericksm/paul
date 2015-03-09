@@ -11,11 +11,13 @@
 (defn goals-to-score-fn
   "Maps number-of-goals to a score value from [0 1]. The mean of goals per game is 1.36"
   [goals]
-  (let [goals-as-number (if (number? goals) goals (Integer/valueOf goals))]
-    (d/cdf (d/poisson-distribution (* 2  1.36) ) (* 2 goals-as-number)) ;; * 2 to smooth the poisson distribution
+  (let [goals-as-number (if (number? goals) goals (Integer/valueOf goals))
+        scale 1  ;; to smooth the poisson distribution
+        ]
+    (d/cdf (d/poisson-distribution (* scale  1.36) ) (* scale goals-as-number)) 
     ))
 
-;;(def score-to-goals-fn (p/inverse-fn goals-to-score-fn))
+(def score-to-goals-fn-2 (p/inverse-fn goals-to-score-fn))
 
 (defn score-to-goals-fn [score]
   (as-> (range -1 100) x

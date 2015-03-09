@@ -122,7 +122,7 @@
   "Returns the inverse function of a monotone increasing function f"
   [f]
   (fn [y]
-    (let [x_min (->> (range) (filter (fn [x] (< (f (* -1 x)) y))) (first))
+    (let [x_min (->> (range) (filter (fn [x] (<= (f (* -1 x)) y))) (first))
           x_max (->> (range) (filter (fn [x] (>= (f x) y))) (first))]
       (loop [a x_min
              b x_max]
