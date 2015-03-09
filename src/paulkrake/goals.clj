@@ -15,17 +15,19 @@
     (d/cdf (d/poisson-distribution (* 2  1.36) ) (* 2 goals-as-number)) ;; * 2 to smooth the poisson distribution
     ))
 
+;;(def score-to-goals-fn (p/inverse-fn goals-to-score-fn))
+
 (defn score-to-goals-fn [score]
   (as-> (range -1 100) x
-        (partition 2 1 x)
-        (filter (fn [[a b]]
-                  (and (<= (goals-to-score-fn a) score )
-                       (<= score (goals-to-score-fn b)))) x)
-        (map (fn [[a b]]
-               (+ a (*  (/ (- score (goals-to-score-fn a)) 
-                           (- (goals-to-score-fn b) (goals-to-score-fn a))) 
-                        (- b a)))) x)
-        (first x)))
+    (partition 2 1 x)
+    (filter (fn [[a b]]
+              (and (<= (goals-to-score-fn a) score )
+                   (<= score (goals-to-score-fn b)))) x)
+    (map (fn [[a b]]
+           (+ a (*  (/ (- score (goals-to-score-fn a)) 
+                       (- (goals-to-score-fn b) (goals-to-score-fn a))) 
+                    (- b a)))) x)
+    (first x)))
 
 (defn new-rating-goals [data games]
   (s/new-rating data games goals-to-score-fn))
