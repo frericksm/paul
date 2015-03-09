@@ -114,4 +114,22 @@
                                     score-to-value-fn)) x)
         (map (fn [[h g [hmin hmax] [gmin gmax]]]
                (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]"
-                       h g hmin hmax gmin gmax)) x)))
+                       h g (float hmin) (float hmax) (float gmin) (float gmax))) x)))
+
+
+
+(defn inverse-fn 
+  "Returns the inverse function of a monotone increasing function f"
+  [f]
+  (fn [y]
+    (let [x_min (->> (range) (filter (fn [x] (< (f (* -1 x)) y))) (first))
+          x_max (->> (range) (filter (fn [x] (>= (f x) y))) (first))]
+      (loop [a x_min
+             b x_max]
+        ;(println (format "a=%s b=%s" a b))
+        (let [mid (/ (+ a b) 2.0)]
+          (if (< (- b a) 0.000001)
+            a
+            (recur
+             (if (>= (f mid) y) a mid)
+             (if (>= (f mid) y) mid b))))))))
