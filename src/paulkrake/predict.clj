@@ -106,6 +106,16 @@
         (s/apply-to-predicted-scores inverse-score-fn x)
         (concat [h g] x)))
 
+(defn predict-score [data games]
+  (as-> games x
+        (map (fn [[ h g]]
+               (predict-single-game data h g
+                                    0.0
+                                    identity)) x)
+        (map (fn [[h g [hmin hmax] [gmin gmax]]]
+               [h g hmin gmin]) x)))
+               
+
 (defn predict-on-data [data games faktor-sigma score-to-value-fn]
   (as-> games x
         (map (fn [[ h g]]
@@ -133,3 +143,5 @@
             (recur
              (if (>= (f mid) y) a mid)
              (if (>= (f mid) y) mid b))))))))
+
+

@@ -8,6 +8,18 @@
             [paulkrake.shots :as shots]
             [incanter.distributions :as d]))
 
+(defn goals-to-score-fn-factory 
+  "Returns a function of one parameter g mapping int -> #{0 1}. Returns 0 if g < min-goals. Returns 1 if g >= min-goals."
+  [min-goals]
+  (fn [goals]
+    (let [goals-as-number (if (number? goals) 
+                            goals 
+                            (Integer/valueOf goals))
+          min-goals-as-number (if (number? min-goals) 
+                                min-goals 
+                                (Integer/valueOf min-goals))]
+      (if (>= goals-as-number min-goals-as-number) 1 0))))
+
 (defn goals-to-score-fn
   "Maps number-of-goals to a score value from [0 1]. The mean of goals per game is 1.36"
   [goals]
@@ -16,8 +28,6 @@
         ]
     (d/cdf (d/poisson-distribution (* scale  1.36) ) (* scale goals-as-number)) 
     ))
-
-(def score-to-goals-fn-2 (p/inverse-fn goals-to-score-fn))
 
 (defn score-to-goals-fn [score]
   (as-> (range -1 100) x
@@ -31,17 +41,23 @@
                     (- b a)))) x)
     (first x)))
 
-(defn new-rating-goals [data games]
-  (s/new-rating data games goals-to-score-fn))
+(defn new-rating-goals 
+  ([data games g-to-s-fn]
+   (s/new-rating data games g-to-s-fn))
+  ([data games]
+   (new-rating-goals data games goals-to-score-fn)))
 
 (defn goals-data
+  ([saison spieltag-nr-von spieltag-nr-bis g-to-s-fn]
+   (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x
+     (reduce (fn [a i] (new-rating-goals a
+                                         (dc/spieltag saison i)
+                                         g-to-s-fn))
+             x (range spieltag-nr-von spieltag-nr-bis))))
   ([saison spieltag-nr-von spieltag-nr-bis]
-     (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x
-           (reduce (fn [a i] (new-rating-goals a
-                                              (dc/spieltag saison i)))
-                   x (range spieltag-nr-von spieltag-nr-bis))))
+   (goals-data saison spieltag-nr-von spieltag-nr-bis goals-to-score-fn))
   ([saison spieltag-nr-bis]
-     (goals-data saison 1 spieltag-nr-bis)))
+   (goals-data saison 1 spieltag-nr-bis)))
 
 (defn predict-goals-on-data
   ([data games]
@@ -49,23 +65,19 @@
   ([data games faktor-sigma]
      (p/predict-on-data data games faktor-sigma score-to-goals-fn)))
 
-(defn predict-goals
-  ([saison spieltag-nr]
-     (predict-goals saison spieltag-nr 0.0))
-  ([saison spieltag-nr faktor-sigma]
-     (predict-goals-on-data (goals-data saison spieltag-nr) (dc/spieltag saison spieltag-nr) faktor-sigma)))
+(defn fire [v] (if (>= v 0.5) 1 0))
 
-(defn predict
-  ([saison spieltag-nr]
-     (predict saison spieltag-nr 0.0))
-  ([saison spieltag-nr faktor-sigma]
-     (let [shots-data (shots/shots-data saison spieltag-nr)
-           gps-data   (gps/gps-data saison spieltag-nr)
-           games      (dc/spieltag saison spieltag-nr)]
-       (as-> games x
-             (map (fn [[ h g]]
-                    (let [[_ _ [shots-hmin shots-hmax] [shots-gmin shots-gmax]] (p/predict-single-game shots-data h g faktor-sigma shots/score-to-shots-fn)
-                          [_ _ [gps-hmin gps-hmax] [gps-gmin gps-gmax]] (p/predict-single-game gps-data h g faktor-sigma gps/score-to-gps-fn)]
-                      [h g [(* shots-hmin gps-hmin 1) (* shots-hmax gps-hmax 1)] [(* shots-gmin gps-gmin 1) (* shots-gmax gps-gmax 1)] ])) x)
-             (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))
-       )))
+(defn predict-result [saison spieltag-von spieltag-bis games]
+  (as-> (range 0 10) x
+    (reduce (fn [a i] 
+              (assoc a i 
+                     (p/predict-score 
+                      (goals-data saison spieltag-von spieltag-bis 
+                                  (goals-to-score-fn-factory i))
+                      games))) {} x)
+    (map (fn [[i data]]
+           [i (map (fn [[h g hp gp]] [h g (* i (fire hp)) (* i(fire gp))]) data)])
+         x)
+    (map (fn [[i data]] (reduce (fn [a [h g hg gg]] 
+                                  (assoc a [h g] [hg gg])) {} data)) x)
+    (apply merge-with (fn [[h1 g1] [h2 g2]] [(max h1 h2) (max g1 g2)]) x)))
