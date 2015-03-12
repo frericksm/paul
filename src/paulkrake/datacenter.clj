@@ -1,8 +1,5 @@
 (ns paulkrake.datacenter
-  (:require [net.cgrand.enlive-html :as html]
-            [paulkrake.score :as s]
-            [paulkrake.glicko2 :as g]
-            [clojure.data.json :as json]))
+  (:require [clojure.data.json :as json]))
 
 (defn to-clj-unmemoized [uri]
   (->> uri slurp json/read-str ))
