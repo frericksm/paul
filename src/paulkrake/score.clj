@@ -30,7 +30,7 @@
         (map (fn [[heim gast heim-goals gast-goals]] (if (= verein heim) gast heim)) x)))
 
 (defn scores [verein games score-fn]
-  (let [abwehr-score-fn (fn [v] (- 1.0 (score-fn v)))]
+    (let [abwehr-score-fn (fn [v] (- 1.0 (score-fn v)))]
     (as-> games x
           (games-of x verein)
           (map (fn [[heim gast heim-goals gast-goals]]
@@ -68,21 +68,19 @@
                                       (map #(get-in % [:abwehr :rating]) x))
         oppenents-rating-deviation-abwehr (as-> gegner x
                                                 (map #(get data %) x)
-                                                (map #(get-in % [:abwehr :rating-deviation]) x))
-        new-abwehr-rating-data (g/adjust-rating old-rating-abwehr
-                                                old-rating-deviation-abwehr
-                                                old-volatility-abwehr
-                                                oppenents-rating-angriff
-                                                oppenents-rating-deviation-angriff
-                                                scores-abwehr)
-        new-angriff-rating-data (g/adjust-rating old-rating-angriff
-                                                 old-rating-deviation-angriff
-                                                 old-volatility-angriff
-                                                 oppenents-rating-abwehr
-                                                 oppenents-rating-deviation-abwehr
-                                                 scores-angriff)
-        ]
-    {:abwehr new-abwehr-rating-data :angriff new-angriff-rating-data}))
+                                                (map #(get-in % [:abwehr :rating-deviation]) x))]
+    {:abwehr (g/adjust-rating old-rating-abwehr
+                              old-rating-deviation-abwehr
+                              old-volatility-abwehr
+                              oppenents-rating-angriff
+                              oppenents-rating-deviation-angriff
+                              scores-abwehr)
+     :angriff (g/adjust-rating old-rating-angriff
+                               old-rating-deviation-angriff
+                               old-volatility-angriff
+                               oppenents-rating-abwehr
+                               oppenents-rating-deviation-abwehr
+                               scores-angriff)}))
 
 (defn vereine [games]
   (->> games
@@ -93,10 +91,15 @@
 (defn played-games [games]
   (filter (fn [[h g hg gg ]] (and (not (nil? hg) ) (not (nil? gg)))) games))
 
+(defn add-data-for-missing-teams [data teams]
+  (reduce (fn [a t] (if (contains? a t) a (assoc a t start-rating-data))) data teams))
+
 (defn new-rating [data games score-fn]
-  (as-> (vereine games) x        
-        (map (fn [v] [v (new-vereins-rating data v games score-fn)]) x)
-        (into {} x)))
+  (let [teams (vereine games)
+        d2 (add-data-for-missing-teams data teams)]
+    (as-> teams x        
+          (map (fn [v] [v (new-vereins-rating d2 v games score-fn)]) x)
+          (into {} x))))
 
 (defn apply-to-predicted-scores [inverse-fn [[hmin hmax] [gmin gmax]]]
   [[(inverse-fn hmin)  (inverse-fn hmax)] [(inverse-fn gmin) (inverse-fn gmax)]])

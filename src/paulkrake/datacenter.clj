@@ -17,9 +17,23 @@
         (first x)))
 
 (defn season-by-competition [saison]
-  (let [name (format "20%s/20%s" 
-                (apply str (take 2 (str saison)))
-                (apply str (drop 2 (str saison))))]
+  (let [jahrhundert1 (if (as-> saison x 
+                               (str x)
+                               (.substring x 0 2)
+                               (Integer/valueOf x) 
+                               (< x 50))
+                       "20" "19")
+        jahrhundert2 (if (as-> saison x 
+                               (str x)
+                               (.substring x 2 4)
+                               (Integer/valueOf x) 
+                               (< x 50))
+                       "20" "19")
+        name (format "%s%s/%s%s"
+                     jahrhundert1
+                     (apply str (take 2 (str saison)))
+                     jahrhundert2
+                     (apply str (drop 2 (str saison))))]
     (as-> "http://sportsapi.sport1.de/seasons-by-competition/co12" x
           (to-clj x)
           (get x "season")
