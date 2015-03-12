@@ -53,31 +53,6 @@
   (->> (clojure.string/split ergebnis #":")
        (map to-num)))
 
-(defn spieltag [saison spieltag-nr]
-  (as-> (season-by-competition saison) x
-        (get x "id")
-        (matches-by-season x spieltag-nr)
-        (get x "round")
-        (first x)
-        (get x "match")
-        (map (fn [m] (let [home     (get-in m ["home" "name"])
-                          away     (get-in m ["away" "name"])
-                          finished (= "yes" (get m "finished"))
-                          hg       (if finished (as-> m y
-                                                      (get y "match_result")
-                                                      (filter #(and (= "home" (get % "place"))
-                                                                    (= "0" (get % "match_result_at"))) y)
-                                                      (map #(get % "match_result") y)
-                                                      (first y)))
-                          ag       (if finished (as-> m y
-                                                      (get y "match_result")
-                                                      (filter #(and (= "away" (get % "place"))
-                                                                    (= "0" (get % "match_result_at"))) y)
-                                                      (map #(get % "match_result") y)
-                                                      (first y)))]
-                      (vector home away hg ag)))
-             x)))
-
 (defn map-inverse [m]
   (as-> m x
         (map (fn [[k v]] [v k]) x)
@@ -95,18 +70,24 @@
                           home-id  (get-in m ["home" "id"]) 
                           away-id  (get-in m ["away" "id"])
                           match-id (get m "id")
-                          hg       (-> (team-stats-by-match match-id home-id)
-                                       (get kategorie))
-                          ag       (-> (team-stats-by-match match-id away-id)
-                                       (get kategorie))]
+                          hg       (as-> (team-stats-by-match match-id home-id) y
+                                     (get y kategorie)
+                                     (Double/valueOf y))
+                          ag       (as-> (team-stats-by-match match-id away-id) y
+                                     (get y kategorie)
+                                     (Double/valueOf y))]
                       (vector home away hg ag)))
              x)))
 
-(defn shots-on-goal [saison spieltag]
-  (data saison spieltag "shots"))
+(defn spieltag [saison spieltag-nr]
+  (data saison spieltag-nr "score"))
 
-(defn tore [saison spieltag]
-  (data saison spieltag "tore"))
+(defn score [saison spieltag-nr]
+  (data saison spieltag-nr "score"))
 
-(defn gegentore [saison spieltag]
-  (data saison spieltag "gegentore"))
+(defn shots-on-goal [saison spieltag-nr]
+  (data saison spieltag-nr "shots"))
+
+(defn passes-complete-percentage [saison spieltag-nr]
+  (data saison spieltag-nr "passes_complete_percentage"))
+
