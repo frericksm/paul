@@ -4,6 +4,7 @@
             [paulkrake.app :as app ]
             [net.cgrand.enlive-html :as html]
             [clojure.data.json :as json]
+            [svm.core :as svm]
            )
   (:use [paulkrake.glicko2 ]
         [paulkrake.spielplan]

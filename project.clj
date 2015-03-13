@@ -7,7 +7,8 @@
                  [com.stuartsierra/component "0.2.1"]
                  [enlive "1.1.5"]
                  [incanter "1.5.5"]
-                 [org.clojure/data.json "0.2.5"]]
+                 [org.clojure/data.json "0.2.5"]
+                 [svm-clj "0.1.3"]]
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.3"]
                                   [org.clojure/java.classpath "0.2.0"]]}}
