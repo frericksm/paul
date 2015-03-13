@@ -115,19 +115,6 @@
         (map (fn [[h g [hmin hmax] [gmin gmax]]]
                [h g hmin gmin]) x)))
                
-
-(defn predict-on-data [data games faktor-sigma score-to-value-fn]
-  (as-> games x
-        (map (fn [[ h g]]
-               (predict-single-game data h g
-                                    faktor-sigma
-                                    score-to-value-fn)) x)
-        (map (fn [[h g [hmin hmax] [gmin gmax]]]
-               (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]"
-                       h g (float hmin) (float hmax) (float gmin) (float gmax))) x)))
-
-
-
 (defn inverse-fn 
   "Returns the inverse function of a monotone increasing function f"
   [f]

@@ -18,10 +18,8 @@
 (defclifn -main 
   [s saison   VAL  int   "Saison auf den Wert VAL. Z.B 1415 für die Saision 2014/2015"
    t spieltag VAL  int   "Spieltag auf den Wert VAL. Z.B 17 für den 17. Spieltag"]
-  (let [results (paulkrake.predict/predict-on-data (paulkrake.goals/goals-data saison spieltag)
-                                                   (paulkrake.datacenter/spieltag saison spieltag)
-                                                   0
-                                                   paulkrake.goals/score-to-goals-fn)]
+   z zurueck  VAL  int   "Greife auf die letzten z Spieltage bei der Modellbildung für die Vorhersage zurück"
+   (let [results (paulkrake.predict/predict-result s t z)]
     (doseq [r results]
       (println r))))
        
