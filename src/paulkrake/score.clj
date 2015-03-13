@@ -1,5 +1,6 @@
 (ns paulkrake.score
-  (:require [paulkrake.glicko2 :as g]
+  (:require [paulkrake.datacenter :as dc]
+            [paulkrake.glicko2 :as g]
             [incanter.distributions :as d]))
 
 (def start-rating-data {:abwehr {:rating 1500.0
@@ -136,3 +137,19 @@
         (apply concat x)
         (d/mean x)
         (double x)))
+
+(defn kategorie-data
+  ([spieltage kategorie kategorie-to-score-fn]
+     (let [vereine (as-> spieltage x
+                         (map first x)
+                         (set x)
+                         (map (fn [s]
+                                (vereine (dc/data s 1 kategorie))) x)
+                         (apply concat x)
+                         (set x))]
+       (reduce (fn [a [saison i]]
+                 (new-rating a
+                               (dc/data saison i kategorie)
+                               kategorie-to-score-fn))
+               (initial-rating-data vereine)
+               spieltage))))
