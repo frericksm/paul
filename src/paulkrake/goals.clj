@@ -60,16 +60,21 @@
   (let [games (dc/spieltag saison spieltag)
         spieltage (range-spieltage saison spieltag n)]
     (as-> (range 0 10) x
-          (reduce (fn [a i]
-                    (let [d1 (goals-data spieltage (goals-to-score-fn-factory i))
-                          new_score (p/predict-score d1 games)]
-                      (assoc a i new_score)))
-                  {} x)
-          (map (fn [[i data]]
-                 [i (map (fn [[h g hp gp]] [h g (* i (fire hp)) (* i(fire gp))]) data)])
-               x)
-          (map (fn [[i data]] (reduce (fn [a [h g hg gg]] 
-                                       (assoc a [h g] [hg gg])) {} data)) x)
-          (apply merge-with (fn [[h1 g1] [h2 g2]] [(max h1 h2) (max g1 g2)]) x)
-          (map (fn [[h g hg gg]] [h g (first (get x [h g])) (second (get x [h g]))]) games)
-          )))
+      (reduce (fn [a i] (as-> i y
+                          (goals-to-score-fn-factory y)
+                          (goals-data spieltage y)
+                          (p/predict-score y games)
+                          (assoc a i y))
+                {} x)
+              (map (fn [[i data]]
+                     [i (map (fn [[h g hp gp]] 
+                               [h g (* i (fire hp)) (* i (fire gp))]) 
+                             data)])
+                   x)
+              (map (fn [[i data]] (reduce (fn [a [h g hg gg]] 
+                                            (assoc a [h g] [hg gg])) {} data)) x)
+              (apply merge-with (fn [[h1 g1] [h2 g2]] 
+                                  [(max h1 h2) (max g1 g2)]) x)
+              (map (fn [[h g hg gg]] 
+                     [h g (first (get x [h g])) (second (get x [h g]))]) 
+                   games))))
