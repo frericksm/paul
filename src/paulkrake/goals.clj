@@ -78,3 +78,14 @@
       (map (fn [[h g hg gg]] 
              [h g (first (get x [h g])) (second (get x [h g]))]) 
            games))))
+
+(defn ratings
+  [saison spieltag n]
+  (let [games (dc/spieltag saison spieltag)
+        spieltage (range-spieltage saison spieltag n)]
+    (as-> (range 0 10) x
+      (reduce (fn [a i] (as-> i y
+                          (goals-to-score-fn-factory y)
+                          (goals-data spieltage y)
+                          (assoc a i y)))
+              {} x))))
