@@ -69,29 +69,37 @@
 
 (defn map-inverse [m]
   (as-> m x
-        (map (fn [[k v]] [v k]) x)
-        (into {} x)))
+    (map (fn [[k v]] [v k]) x)
+    (into {} x)))
+
+(defn stat-data [saison spieltag-nr]
+  (as-> (season-by-competition saison) x
+    (get x "id")
+    (matches-by-season x spieltag-nr)
+    (get x "round")
+    (first x)
+    (get x "match")
+    (map (fn [m] (let [home     (get-in m ["home" "name"])
+                       away     (get-in m ["away" "name"])
+                       home-id  (get-in m ["home" "id"]) 
+                       away-id  (get-in m ["away" "id"])
+                       match-id (get m "id")
+                       hg       (team-stats-by-match match-id home-id) 
+                       ag       (team-stats-by-match match-id away-id)]
+                   (vector home away hg ag)))
+         x)))
 
 (defn data [saison spieltag-nr kategorie]
-  (as-> (season-by-competition saison) x
-        (get x "id")
-        (matches-by-season x spieltag-nr)
-        (get x "round")
-        (first x)
-        (get x "match")
-        (map (fn [m] (let [home     (get-in m ["home" "name"])
-                          away     (get-in m ["away" "name"])
-                          home-id  (get-in m ["home" "id"]) 
-                          away-id  (get-in m ["away" "id"])
-                          match-id (get m "id")
-                          hg       (as-> (team-stats-by-match match-id home-id) y
-                                     (get y kategorie)
-                                     (Double/valueOf y))
-                          ag       (as-> (team-stats-by-match match-id away-id) y
-                                     (get y kategorie)
-                                     (Double/valueOf y))]
-                      (vector home away hg ag)))
-             x)))
+  (as-> (stat-data saison spieltag-nr) x
+    (map (fn [[home away hg ag]] 
+           (let [hg_new (as-> hg y
+                          (get y kategorie)
+                          (Double/valueOf y))
+                 ag_new (as-> ag y
+                          (get y kategorie)
+                          (Double/valueOf y))]
+             (vector home away hg_new ag_new)))
+         x))) 
 
 (defn spieltag [saison spieltag-nr]
   (data saison spieltag-nr "score"))

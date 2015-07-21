@@ -74,14 +74,16 @@
 
 
 (defn- predict [data heim gast faktor-sigma]
-  (let [h-angriff-r  (get-in data [heim :angriff :rating])
-        h-angriff-rd (get-in data [heim :angriff :rating-deviation])
-        h-abwehr-r  (get-in data [heim :abwehr :rating])
-        h-abwehr-rd (get-in data [heim :abwehr :rating-deviation])
-        g-abwehr-r  (get-in data [gast :abwehr :rating])
-        g-abwehr-rd (get-in data [gast :abwehr :rating-deviation])
-        g-angriff-r  (get-in data [gast :angriff :rating])
-        g-angriff-rd (get-in data [gast :angriff :rating-deviation])
+  (let [h-data  (get-in  data [heim] s/aufsteiger-rating-data)
+        g-data  (get-in  data [gast] s/aufsteiger-rating-data)
+        h-angriff-r  (get-in h-data [:angriff :rating])
+        h-angriff-rd (get-in h-data [:angriff :rating-deviation])
+        h-abwehr-r  (get-in h-data [:abwehr :rating])
+        h-abwehr-rd (get-in h-data [:abwehr :rating-deviation])
+        g-abwehr-r  (get-in g-data [:abwehr :rating])
+        g-abwehr-rd (get-in g-data [:abwehr :rating-deviation])
+        g-angriff-r  (get-in g-data [:angriff :rating])
+        g-angriff-rd (get-in g-data [:angriff :rating-deviation])
         h-score-min (g/E-fn (g/mu (- h-angriff-r
                                      (* faktor-sigma h-angriff-rd)))
                             (g/mu g-abwehr-r)
