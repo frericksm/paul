@@ -38,27 +38,12 @@
 
 (defn fire [v] (if (> v 0.5) 1 0))
 
-(defn calc [saison t n]
-  (let [new_saison_1 (as-> saison x
-                           (str x)
-                           (.substring x 0 2)
-                           (Integer/valueOf x))
-        new_saison_2 (- new_saison_1 (int (/ (+ n (- 34 t)) 34)))
-        new_saison_3 (format "%02d%02d" (mod new_saison_2 100) (mod (inc new_saison_2) 100))
-        new_tag_1  (mod (- t n) 34) 
-        new_tag_2  (if (= 0 new_tag_1) 34 new_tag_1)]
-    [new_saison_3 new_tag_2]))
 
-(defn range-spieltage [saison spieltag n]
-  (as-> (range 1 (inc n)) x
-        (map (fn [i] (calc saison spieltag i)) x)
-        (reverse x)
-        ))
 
 (defn predict-result
   [saison spieltag n]
   (let [games (dc/spieltag saison spieltag)
-        spieltage (range-spieltage saison spieltag n)]
+        spieltage (dc/range-spieltage saison spieltag n)]
     (as-> (range 0 10) x
       (reduce (fn [a i] (as-> i y
                           (goals-to-score-fn-factory y)
@@ -82,7 +67,7 @@
 (defn ratings
   [saison spieltag n]
   (let [games (dc/spieltag saison spieltag)
-        spieltage (range-spieltage saison spieltag n)]
+        spieltage (dc/range-spieltage saison spieltag n)]
     (as-> (range 0 10) x
       (reduce (fn [a i] (as-> i y
                           (goals-to-score-fn-factory y)

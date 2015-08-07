@@ -1,6 +1,30 @@
 (ns paulkrake.datacenter
   (:require [clojure.data.json :as json]))
 
+
+(def all-kategories (list "passes_complete_percentage" "score_foot_against" "crosses" "passes_complete" "duels_lost_ground" "score" "duels_lost_header" "duels_won" "shot_assists" "tracking_fast_runs" "corner_kicks_left" "fouls_committed" "crosses_left" "card_red" "saves" "shots_inside_box" "fouls_suffered" "score_foot" "shots_header" "balls_touched_percentage" "shots_foot" "freekicks" "duels_won_percentage" "passes_failed" "crosses_right" "balls_touched" "score_header_against" "tracking_sprints" "shots" "corner_kicks" "duels_won_header" "score_header" "average_age" "duels_won_ground" "offsides" "passes_failed_percentage" "card_yellow_red" "shots_outside_box" "tracking_max_speed" "shots_on_goal" "tracking_average_speed" "score_penalty" "score_against" "duels_lost_percentage" "duels_lost" "tracking_distance" "team" "corner_kicks_right" "card_yellow" "score_penalty_against"))
+
+(def kategories 
+  ["passes_complete" "passes_complete_percentage" 
+   "crosses" "crosses_left"
+   "duels_won" 
+   "shot_assists" 
+   "tracking_fast_runs" 
+   "corner_kicks_left" 
+   "fouls_committed"  
+   "card_red" 
+   "saves" 
+   "shots_inside_box" 
+   "shots_header"
+   "shots_foot"
+   "balls_touched_percentage" 
+   "freekicks" 
+   "duels_won_percentage" 
+   "passes_failed" 
+   "crosses_right" 
+   "balls_touched" 
+   "tracking_sprints" "shots" "corner_kicks" "duels_won_header" "average_age" "duels_won_ground" "offsides" "passes_failed_percentage" "card_yellow_red" "shots_outside_box" "tracking_max_speed" "shots_on_goal" "tracking_average_speed"  "tracking_distance" "corner_kicks_right" "card_yellow"))
+
 (defn to-clj-unmemoized [uri]
   (->> uri slurp json/read-str ))
 
@@ -112,4 +136,22 @@
 
 (defn passes-complete-percentage [saison spieltag-nr]
   (data saison spieltag-nr "passes_complete_percentage"))
+
+
+(defn calc [saison t n]
+  (let [new_saison_1 (as-> saison x
+                           (str x)
+                           (.substring x 0 2)
+                           (Integer/valueOf x))
+        new_saison_2 (- new_saison_1 (int (/ (+ n (- 34 t)) 34)))
+        new_saison_3 (format "%02d%02d" (mod new_saison_2 100) (mod (inc new_saison_2) 100))
+        new_tag_1  (mod (- t n) 34) 
+        new_tag_2  (if (= 0 new_tag_1) 34 new_tag_1)]
+    [new_saison_3 new_tag_2]))
+
+(defn range-spieltage [saison spieltag n]
+  (as-> (range 1 (inc n)) x
+        (map (fn [i] (calc saison spieltag i)) x)
+        (reverse x)
+        ))
 

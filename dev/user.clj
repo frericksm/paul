@@ -12,6 +12,7 @@
         [paulkrake.bulibox]
         [paulkrake.datacenter]
         [paulkrake.data]
+        [paulkrake.ml]
         [paulkrake.statistik]
         [paulkrake.predict]
         [paulkrake.goals]

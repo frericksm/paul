@@ -1,6 +1,6 @@
 (set-env!
  :source-paths #{"src"}
- :dependencies '[[org.clojure/clojure "1.6.0"] 
+ :dependencies '[[org.clojure/clojure "1.7.0"] 
                  [com.stuartsierra/component "0.2.1"]   
                  [enlive "1.1.5"]           
                  [incanter "1.5.5"]
