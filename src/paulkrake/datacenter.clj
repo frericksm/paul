@@ -23,7 +23,7 @@
    "passes_failed" 
    "crosses_right" 
    "balls_touched" 
-   "tracking_sprints" "shots" "corner_kicks" "duels_won_header" "average_age" "duels_won_ground" "offsides" "passes_failed_percentage" "card_yellow_red" "shots_outside_box" "tracking_max_speed" "shots_on_goal" "tracking_average_speed"  "tracking_distance" "corner_kicks_right" "card_yellow"))
+   "tracking_sprints" "shots" "corner_kicks" "duels_won_header" "average_age" "duels_won_ground" "offsides" "passes_failed_percentage" "card_yellow_red" "shots_outside_box" "tracking_max_speed" "shots_on_goal" "tracking_average_speed"  "tracking_distance" "corner_kicks_right" "card_yellow"])
 
 (defn to-clj-unmemoized [uri]
   (->> uri slurp json/read-str ))
