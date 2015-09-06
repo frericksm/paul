@@ -16,6 +16,7 @@
         [paulkrake.statistik]
         [paulkrake.predict]
         [paulkrake.goals]
+        [paulkrake.goals-ml]
         [paulkrake.shots]
         [paulkrake.goals-per-shots]))
 

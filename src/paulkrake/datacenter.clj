@@ -113,6 +113,14 @@
                    (vector home away hg ag)))
          x)))
 
+(defn teams [saison spieltag-nr]
+  (as-> (stat-data saison spieltag-nr) x
+    (map (fn [[home away _ _]]
+             (vector home away)) x)
+    (apply concat x)
+    (set x)))
+
+
 (defn data [saison spieltag-nr kategorie]
   (as-> (stat-data saison spieltag-nr) x
     (map (fn [[home away hg ag]] 

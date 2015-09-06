@@ -38,8 +38,6 @@
 
 (defn fire [v] (if (> v 0.5) 1 0))
 
-
-
 (defn predict-result
   [saison spieltag n]
   (let [games (dc/spieltag saison spieltag)
