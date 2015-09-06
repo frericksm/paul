@@ -66,10 +66,10 @@
              (concat (vector hg gg) (get features h) (get features g))) x))))
 
 
-(defn write-freature-to-file []
-  (as-> f x 
+(defn write-freature-to-file [features out-file]
+  (as-> features x 
     (map (fn [[hg gg & feat]] (cons (score-to-label hg gg) feat)) x) 
     (map (fn [v] (apply str (interpose "," v))) x)
     (interpose "\n" x)
     (apply str x)
-    (spit "resources/features.csv" x)))
+    (spit out-file x)))
