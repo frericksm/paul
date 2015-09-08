@@ -1,5 +1,7 @@
 (ns paulkrake.datacenter
-  (:require [clojure.data.json :as json]))
+  (:require [clojure.data.json :as json]
+            [clojure.java.io]
+            [clojure.edn]))
 
 
 (def all-kategories (list "passes_complete_percentage" "score_foot_against" "crosses" "passes_complete" "duels_lost_ground" "score" "duels_lost_header" "duels_won" "shot_assists" "tracking_fast_runs" "corner_kicks_left" "fouls_committed" "crosses_left" "card_red" "saves" "shots_inside_box" "fouls_suffered" "score_foot" "shots_header" "balls_touched_percentage" "shots_foot" "freekicks" "duels_won_percentage" "passes_failed" "crosses_right" "balls_touched" "score_header_against" "tracking_sprints" "shots" "corner_kicks" "duels_won_header" "score_header" "average_age" "duels_won_ground" "offsides" "passes_failed_percentage" "card_yellow_red" "shots_outside_box" "tracking_max_speed" "shots_on_goal" "tracking_average_speed" "score_penalty" "score_against" "duels_lost_percentage" "duels_lost" "tracking_distance" "team" "corner_kicks_right" "card_yellow" "score_penalty_against"))
@@ -96,7 +98,7 @@
     (map (fn [[k v]] [v k]) x)
     (into {} x)))
 
-(defn stat-data [saison spieltag-nr]
+(defn stat-data-remote [saison spieltag-nr]
   (as-> (season-by-competition saison) x
     (get x "id")
     (matches-by-season x spieltag-nr)
@@ -112,6 +114,20 @@
                        ag       (team-stats-by-match match-id away-id)]
                    (vector home away hg ag)))
          x)))
+
+(defn stat-data-local [p-saison p-spieltag-nr f]
+  (as-> (line-seq (clojure.java.io/reader f)) x
+    (map clojure.edn/read-string x)
+    (filter (fn [{:keys [saison spieltagtag] :as m}]
+              (and (= (str p-saison) saison)
+                   (= p-spieltag-nr spieltag))) x)
+    (map :data x)))
+
+(defn stat-data [saison spieltag-nr]
+  (let [f (clojure.java.io/file (str "resources/stat-%s.txt" (str saison)))]
+    (if (not (.exists f))
+      (stat-data-remote saison spieltag-nr)
+      (stat-data-local saison spieltag-nr f)))´)
 
 (defn teams [saison spieltag-nr]
   (as-> (stat-data saison spieltag-nr) x
