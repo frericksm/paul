@@ -145,7 +145,6 @@
 (defn passes-complete-percentage [saison spieltag-nr]
   (data saison spieltag-nr "passes_complete_percentage"))
 
-
 (defn calc [saison t n]
   (let [new_saison_1 (as-> saison x
                            (str x)
@@ -157,9 +156,19 @@
         new_tag_2  (if (= 0 new_tag_1) 34 new_tag_1)]
     [new_saison_3 new_tag_2]))
 
-(defn range-spieltage [saison spieltag n]
-  (as-> (range 1 (inc n)) x
-        (map (fn [i] (calc saison spieltag i)) x)
-        (reverse x)
-        ))
-
+(defn range-spieltage 
+  ([saison spieltag n1 n2]
+   (as-> (range n1 n2) x
+     (map (fn [i] (calc saison spieltag i)) x)
+     (reverse x)
+     ))
+  ([saison spieltag n]
+   (range-spieltage saison spieltag 1 (+ 1 n))))
+   
+(defn dump [saison out-dir]
+  (with-open [wtr (clojure.java.io/writer 
+                   (format "%s/stat-%s.txt" out-dir (str saison)))]
+    (as-> (range-spieltage saison 34 0 34) x
+      (map (fn [[s t]] (hash-map :saison s :spieltag t :data (stat-data s t))) x)
+      (doseq [line x] (.write wtr (str (pr-str line) "\n"))))
+    ))
