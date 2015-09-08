@@ -99,6 +99,7 @@
     (into {} x)))
 
 (defn stat-data-remote [saison spieltag-nr]
+  ;;(println "stat-data-remote" saison spieltag-nr)
   (as-> (season-by-competition saison) x
     (get x "id")
     (matches-by-season x spieltag-nr)
@@ -115,19 +116,26 @@
                    (vector home away hg ag)))
          x)))
 
-(defn stat-data-local [p-saison p-spieltag-nr f]
-  (as-> (line-seq (clojure.java.io/reader f)) x
+(defn stat-data-file [saison]
+  (let [f (clojure.java.io/file (format "resources/stat-%s.txt" (str saison)))]
+    (if (.exists f) f)))
+
+(defn stat-data-local [p-saison p-spieltag-nr]
+  ;;(println "stat-data-local" p-saison p-spieltag-nr)
+  (as-> (line-seq (clojure.java.io/reader (stat-data-file p-saison))) x
     (map clojure.edn/read-string x)
-    (filter (fn [{:keys [saison spieltagtag] :as m}]
+    (filter (fn [{:keys [saison spieltag] :as m}]
               (and (= (str p-saison) saison)
                    (= p-spieltag-nr spieltag))) x)
-    (map :data x)))
+    (map :data x)
+    (first x)))
 
-(defn stat-data [saison spieltag-nr]
-  (let [f (clojure.java.io/file (str "resources/stat-%s.txt" (str saison)))]
-    (if (not (.exists f))
-      (stat-data-remote saison spieltag-nr)
-      (stat-data-local saison spieltag-nr f)))´)
+(defn stat-data-unmemoized [saison spieltag-nr]
+  (as-> (stat-data-file saison) x
+    (if (not (nil? x)) (stat-data-local saison spieltag-nr))
+    (if (nil? x) (stat-data-remote saison spieltag-nr) x)))
+
+(def stat-data (memoize stat-data-unmemoized))
 
 (defn teams [saison spieltag-nr]
   (as-> (stat-data saison spieltag-nr) x
