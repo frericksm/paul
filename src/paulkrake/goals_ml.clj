@@ -73,3 +73,10 @@
     (interpose "\n" x)
     (apply str x)
     (spit out-file x)))
+
+
+(defn make-feature-file[]
+  (as-> (range-spieltage 1516 3 0 887) x
+    (map (fn [[s t]] (spieltag-features s t)) x)
+    (apply concat x)
+    (write-freature-to-file x "resources/features.csv")))
