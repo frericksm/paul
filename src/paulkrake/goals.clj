@@ -22,18 +22,14 @@
 
 (defn goals-data
   [spieltage g-to-s-fn]
-  ;;(println "goals-data start")
+  ;;(println "goals-data start" spieltage)
   (let [vereine (as-> spieltage x
                   (map first x)
                   (set x)
-                  (map (fn [s]
-                         (s/vereine (dc/spieltag s 1))) x)
+                  (map (fn [s] (s/vereine (dc/spieltag s 1))) x)
                   (apply concat x)
                   (set x))
-        result (reduce (fn [a [saison i]]
-                         (s/new-rating a
-                                       (dc/spieltag saison i)
-                                       g-to-s-fn))
+        result (reduce (fn [a [saison i]] (s/new-rating a (dc/spieltag saison i) g-to-s-fn))
                        (s/initial-rating-data vereine)
                        spieltage)]
     result))
