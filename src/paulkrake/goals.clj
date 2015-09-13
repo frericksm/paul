@@ -21,20 +21,22 @@
       (if (>= goals-as-number min-goals-as-number) 1 0))))
 
 (defn goals-data
-  ([spieltage g-to-s-fn]
-     (let [vereine (as-> spieltage x
-                         (map first x)
-                         (set x)
-                         (map (fn [s]
-                                (s/vereine (dc/spieltag s 1))) x)
-                         (apply concat x)
-                         (set x))]
-       (reduce (fn [a [saison i]]
-                 (s/new-rating a
-                               (dc/spieltag saison i)
-                               g-to-s-fn))
-               (s/initial-rating-data vereine)
-               spieltage))))
+  [spieltage g-to-s-fn]
+  ;;(println "goals-data start")
+  (let [vereine (as-> spieltage x
+                  (map first x)
+                  (set x)
+                  (map (fn [s]
+                         (s/vereine (dc/spieltag s 1))) x)
+                  (apply concat x)
+                  (set x))
+        result (reduce (fn [a [saison i]]
+                         (s/new-rating a
+                                       (dc/spieltag saison i)
+                                       g-to-s-fn))
+                       (s/initial-rating-data vereine)
+                       spieltage)]
+    result))
 
 (defn fire [v] (if (> v 0.5) 1 0))
 

@@ -96,11 +96,13 @@
   (reduce (fn [a t] (if (contains? a t) a (assoc a t start-rating-data))) data teams))
 
 (defn new-rating [data games score-fn]
+  ;;(println "new-rating start" )
   (let [teams (vereine games)
-        d2 (add-data-for-missing-teams data teams)]
-    (as-> teams x        
-          (map (fn [v] [v (new-vereins-rating d2 v games score-fn)]) x)
-          (into {} x))))
+        d2 (add-data-for-missing-teams data teams)
+        result (as-> teams x        
+                 (map (fn [v] [v (new-vereins-rating d2 v games score-fn)]) x)
+                 (into {} x))]
+    result))
 
 (defn apply-to-predicted-scores [inverse-fn [[hmin hmax] [gmin gmax]]]
   [[(inverse-fn hmin)  (inverse-fn hmax)] [(inverse-fn gmin) (inverse-fn gmax)]])

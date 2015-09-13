@@ -14,7 +14,7 @@
   [g1 g2]
   (let [n (+ g1 g2)
         s (/ (* n (inc n)) 2)]
-    (+ s (inc g2))))
+    (int  (+ s (inc g2)))))
 
 (defn label-to-score 
   "Takes a label and translates it back into a soccer result"
@@ -26,6 +26,13 @@
         g2 (dec (- label n))
         g1  (- g1_0 g2)]
     [g1 g2]))
+
+(defn format-2-decimals [x]
+  (if (nil? x) (throw (java.lang.IllegalArgumentException. x)))
+  (as-> x z
+    (* 100 z)
+    (int z)
+    (/ z 100.0)))
 
 (defn goals-feature-data [saison spieltag n]
   (let [max-goals 7
@@ -53,10 +60,12 @@
 (defn goals-7-17-34-features [saison spieltag]
   (merge-with concat 
               (goals-feature-data saison spieltag 7)
-              (goals-feature-data saison spieltag 17)
-              (goals-feature-data saison spieltag 34)))
+              ;(goals-feature-data saison spieltag 17)
+              ;(goals-feature-data saison spieltag 34)
+              ))
 
 (defn spieltag-features [saison spieltag]
+  (println "spieltag-features: " saison spieltag)
   (let [games (dc/spieltag saison spieltag)
         [saison-1 spieltag-1] (first (dc/range-spieltage saison spieltag 1))
         features (goals-7-17-34-features saison-1 spieltag-1) 
@@ -66,17 +75,18 @@
              (concat (vector hg gg) (get features h) (get features g))) x))))
 
 
-(defn write-freature-to-file [features out-file]
+(defn write-features-to-file [features out-file]
   (as-> features x 
-    (map (fn [[hg gg & feat]] (cons (score-to-label hg gg) feat)) x) 
+    (map (fn [[hg gg & feat]]
+           (cons (score-to-label hg gg) (map format-2-decimals feat))) x) 
     (map (fn [v] (apply str (interpose "," v))) x)
     (interpose "\n" x)
     (apply str x)
     (spit out-file x)))
 
 
-(defn make-feature-file[]
+(defn make-features-file[]
   (as-> (dc/range-spieltage 1516 3 0 887) x
     (map (fn [[s t]] (spieltag-features s t)) x)
     (apply concat x)
-    (write-freature-to-file x "resources/features.csv")))
+    (write-feature-to-file x "resources/features.csv")))

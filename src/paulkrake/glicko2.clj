@@ -4,7 +4,8 @@
 
 (def tau 1.0)
 
-(def epsilon 0.000001)
+;;(def epsilon 0.000001)
+(def epsilon 0.00001)
 
 (defn mu [rating] (/ (- rating 1500.0) 173.7178 ))
 
@@ -74,7 +75,7 @@
          B      (fn-B a sigma phi delta v)
          fA     (sandwich-f tau delta phi v a A)
          fB     (sandwich-f tau delta phi v a B)]
-      ;(println (format "A: %s B: %s fA: %s fB %s" A B fA fB))
+      ;;(println (format "A: %s B: %s fA: %s fB %s" A B fA fB))
       (if (<= (Math/abs (- B A)) epsilon)
         (Math/pow Math/E (/ A 2.0))
         (let [C (+ A (* (- A B) fA (/ 1.0 (- fB fA))))
