@@ -28,25 +28,30 @@
     [g1 g2]))
 
 (defn goals-feature-data [saison spieltag n]
+  ;;(println (format "goals-feature-data %s %d %d" (str saison) spieltag n)) 
   (let [max-goals 7
         teams (dc/teams saison spieltag)
         spieltage (dc/range-spieltage saison spieltag n)
-        data-keyed-on-goals (as-> (range 1 max-goals) x
-                              (reduce (fn [a i] (as-> i y
-                                                 (g/goals-to-score-fn-factory y)
-                                                 (g/goals-data spieltage y)
-                                                 (assoc a i y)))
-                                      {} x))]
+        data-keyed-on-goals 
+        (as-> (range 1 max-goals) x
+          (reduce (fn [a i] (as-> i y
+                              (g/goals-to-score-fn-factory y)
+                              (g/goals-data spieltage y)
+                              (assoc a i y)))
+                  {} x))]
     (as-> teams x
-      (reduce (fn [a t] (assoc a t (as-> (range 1 max-goals) y
-                                    (map (fn [i] (as-> (get-in data-keyed-on-goals [i t]) z
-                                                  (assoc z :goals i))) y)
-                                    (map (fn [{:keys [angriff abwehr]}]
-                                           (vector (:rating angriff)
-                                                   (:rating-deviation angriff)
-                                                   (:rating abwehr)
-                                                   (:rating-deviation abwehr))) y)
-                                    (apply concat y))))
+      (reduce 
+       (fn [a t] 
+         (assoc a t 
+                (as-> (range 1 max-goals) y
+                  (map (fn [i] (as-> (get-in data-keyed-on-goals [i t]) z 
+                                 (assoc z :goals i))) y)
+                  (map (fn [{:keys [angriff abwehr]}]
+                         (vector (:rating angriff)
+                                 (:rating-deviation angriff)
+                                 (:rating abwehr)
+                                 (:rating-deviation abwehr))) y)
+                  (apply concat y))))
               {}
               x))))
 
@@ -57,6 +62,7 @@
               (goals-feature-data saison spieltag 34)))
 
 (defn spieltag-features [saison spieltag]
+  ;;(println (format "spieltag-features %s %s" (str saison) (str spieltag)))
   (let [games (dc/spieltag saison spieltag)
         [saison-1 spieltag-1] (first (dc/range-spieltage saison spieltag 1))
         features (goals-7-17-34-features saison-1 spieltag-1) 
@@ -64,7 +70,6 @@
     (as-> games x
       (map (fn [[h g hg gg]]
              (concat (vector hg gg) (get features h) (get features g))) x))))
-
 
 (defn write-freature-to-file [features out-file]
   (as-> features x 
@@ -74,9 +79,8 @@
     (apply str x)
     (spit out-file x)))
 
-
 (defn make-feature-file[]
-  (as-> (dc/range-spieltage 1516 3 0 887) x
+  (as-> (dc/range-spieltage 1516 3 0 (- 887 34)) x
     (map (fn [[s t]] (spieltag-features s t)) x)
     (apply concat x)
     (write-freature-to-file x "resources/features.csv")))

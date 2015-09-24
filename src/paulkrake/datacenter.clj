@@ -1,7 +1,8 @@
 (ns paulkrake.datacenter
   (:require [clojure.data.json :as json]
             [clojure.java.io]
-            [clojure.edn]))
+            [clojure.edn]
+            [paulkrake.debug :as d]))
 
 
 (def all-kategories (list "passes_complete_percentage" "score_foot_against" "crosses" "passes_complete" "duels_lost_ground" "score" "duels_lost_header" "duels_won" "shot_assists" "tracking_fast_runs" "corner_kicks_left" "fouls_committed" "crosses_left" "card_red" "saves" "shots_inside_box" "fouls_suffered" "score_foot" "shots_header" "balls_touched_percentage" "shots_foot" "freekicks" "duels_won_percentage" "passes_failed" "crosses_right" "balls_touched" "score_header_against" "tracking_sprints" "shots" "corner_kicks" "duels_won_header" "score_header" "average_age" "duels_won_ground" "offsides" "passes_failed_percentage" "card_yellow_red" "shots_outside_box" "tracking_max_speed" "shots_on_goal" "tracking_average_speed" "score_penalty" "score_against" "duels_lost_percentage" "duels_lost" "tracking_distance" "team" "corner_kicks_right" "card_yellow" "score_penalty_against"))
@@ -99,7 +100,7 @@
     (into {} x)))
 
 (defn stat-data-remote [saison spieltag-nr]
-  ;;(println "stat-data-remote" saison spieltag-nr)
+  (println "stat-data-remote" saison spieltag-nr)
   (as-> (season-by-competition saison) x
     (get x "id")
     (matches-by-season x spieltag-nr)
@@ -121,7 +122,7 @@
     (if (.exists f) f)))
 
 (defn stat-data-local [p-saison p-spieltag-nr]
-  ;;(println "stat-data-local" p-saison p-spieltag-nr)
+  (println "stat-data-local" p-saison p-spieltag-nr)
   (as-> (line-seq (clojure.java.io/reader (stat-data-file p-saison))) x
     (map clojure.edn/read-string x)
     (filter (fn [{:keys [saison spieltag] :as m}]
@@ -193,6 +194,6 @@
   (with-open [wtr (clojure.java.io/writer 
                    (format "%s/stat-%s.txt" out-dir (str saison)))]
     (as-> (range-spieltage saison 34 0 34) x
-      (map (fn [[s t]] (hash-map :saison s :spieltag t :data (stat-data s t))) x)
+      (map (fn [[s t]] (hash-map :saison s :spieltag t :data (stat-data-remote s t))) x)
       (doseq [line x] (.write wtr (str (pr-str line) "\n"))))
     ))

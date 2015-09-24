@@ -22,19 +22,19 @@
 
 (defn goals-data
   ([spieltage g-to-s-fn]
-     (let [vereine (as-> spieltage x
-                         (map first x)
-                         (set x)
-                         (map (fn [s]
-                                (s/vereine (dc/spieltag s 1))) x)
-                         (apply concat x)
-                         (set x))]
-       (reduce (fn [a [saison i]]
-                 (s/new-rating a
-                               (dc/spieltag saison i)
-                               g-to-s-fn))
-               (s/initial-rating-data vereine)
-               spieltage))))
+   (let [vereine (as-> spieltage x
+                   (map first x)
+                   (set x)
+                   (map (fn [s]
+                          (s/vereine (dc/spieltag s 1))) x)
+                   (apply concat x)
+                   (set x))]
+     (reduce (fn [a [saison i]]
+               (s/new-rating a
+                             (dc/spieltag saison i)
+                             g-to-s-fn))
+             (s/initial-rating-data vereine)
+             spieltage))))
 
 (defn fire [v] (if (> v 0.5) 1 0))
 
@@ -55,7 +55,7 @@
                      data)])
            x)
       (map (fn [[i data]] (reduce (fn [a [h g hg gg]] 
-                                   (assoc a [h g] [hg gg])) {} data)) x)
+                                    (assoc a [h g] [hg gg])) {} data)) x)
       (apply merge-with (fn [[h1 g1] [h2 g2]] 
                           [(max h1 h2) (max g1 g2)]) x)
       (map (fn [[h g hg gg]] 
