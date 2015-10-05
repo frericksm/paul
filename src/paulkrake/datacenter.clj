@@ -190,10 +190,16 @@
   ([saison spieltag n]
    (range-spieltage saison spieltag 1 (+ 1 n))))
    
-(defn dump [saison out-dir]
+(defn dump [saison spieltag-bis out-dir]
+  (let [st (range-spieltage saison spieltag-bis 0 spieltag-bis)
+        st-d-local (reduce (fn [a [s t]] (assoc a [s t] (stat-data-local s t))) 
+                           {} st)]
   (with-open [wtr (clojure.java.io/writer 
                    (format "%s/stat-%s.txt" out-dir (str saison)))]
-    (as-> (range-spieltage saison 34 0 34) x
-      (map (fn [[s t]] (hash-map :saison s :spieltag t :data (stat-data-remote s t))) x)
+    (as-> st x
+      (map (fn [[s t]] 
+             (if (not (nil? (get st-d-local [s t])))
+               (hash-map :saison s :spieltag t :data (get st-d-local [s t]))
+               (hash-map :saison s :spieltag t :data (stat-data-remote s t)))) x)
       (doseq [line x] (.write wtr (str (pr-str line) "\n"))))
-    ))
+    )))
