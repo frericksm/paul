@@ -36,7 +36,7 @@
 
 (defn fire [v] (if (> v 0.5) 1 0))
 
-(defn predict-result
+(defn predict-result-unmemoized
   [saison spieltag n]
   (let [games (dc/spieltag saison spieltag)
         spieltage (dc/range-spieltage saison spieltag n)]
@@ -59,6 +59,8 @@
       (map (fn [[h g hg gg]] 
              [h g (first (get x [h g])) (second (get x [h g]))]) 
            games))))
+
+(def predict-result (memoize predict-result-unmemoized))
 
 (defn ratings
   [saison spieltag n]
