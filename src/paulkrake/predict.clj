@@ -132,5 +132,3 @@
             (recur
              (if (>= (f mid) y) a mid)
              (if (>= (f mid) y) mid b))))))))
-
-

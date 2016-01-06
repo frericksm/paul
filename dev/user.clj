@@ -18,6 +18,7 @@
         [paulkrake.goals]
         [paulkrake.goals-ml]
         [paulkrake.shots]
+        [paulkrake.crossval]
         [paulkrake.goals-per-shots]))
 
 (def system nil)
