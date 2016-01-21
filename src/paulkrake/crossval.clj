@@ -26,7 +26,7 @@
 
 
 (defn cross-validate [saison threshold]
-  (as-> (for [min-n (range 1 20) max-n (range 1 20)]
+  (as-> (for [max-n (range 1 35)  min-n (range 1 35) :while (<= min-n max-n)]
           (as-> (dc/range-spieltage saison 35 34) y
             (map (fn [s] (points s min-n max-n)) y)
             [min-n max-n (apply + y)])) x
