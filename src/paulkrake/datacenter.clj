@@ -158,11 +158,12 @@
              (vector home away hg_new ag_new)))
          x))) 
 
-(defn spieltag [saison spieltag-nr]
-  (data saison spieltag-nr "score"))
-
 (defn score [saison spieltag-nr]
-  (data saison spieltag-nr "score"))
+  (as-> (data saison spieltag-nr "score") x
+    (map (fn [[h g hg gg]] (vector h g (int hg) (int gg))) x)))
+
+(defn spieltag [saison spieltag-nr]
+  (score saison spieltag-nr))
 
 (defn shots-on-goal [saison spieltag-nr]
   (data saison spieltag-nr "shots"))
