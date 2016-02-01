@@ -16,6 +16,7 @@
 
 (defn kickerpoints [[rh rg][ph pg]]
   (cond (and (=  rh ph) (= rg pg)) 4
+        (and (not= rh ph) (= rh rg) (= ph pg))    2
         (and (not= rh ph) (= (- rh ph) (- rg pg)))    3
         (= (Math/signum (double (- rh rg))) (Math/signum (double (- ph pg)))) 2
         true                                                0))
