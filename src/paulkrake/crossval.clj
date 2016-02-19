@@ -5,14 +5,17 @@
 (defn metric-distance 
   "euklidische Norm"
   [result prediction]
-  (->> (map (fn [[rh rg][ph pg]]
-              (Math/sqrt (+ (* (- rg pg) 
-                               (- rg pg)) 
-                            (* (- rh ph) 
-                               (- rh ph))))) result prediction)
-       (map (fn [x] (* x x)))
-       (apply +)
-       (Math/sqrt)))
+  (as-> (map (fn [[rh rg][ph pg]]
+               (Math/sqrt (+ (* (- rg pg) 
+                                (- rg pg)) 
+                             (* (- rh ph) 
+                                (- rh ph))))) result prediction) x
+    (map (fn [x] (* x x)) x)
+    (apply + x)
+    (Math/sqrt x)
+    (* 100 x)
+    (int x)
+    (/ x 100.0)))
 
 (defn kickerpoints [[rh rg][ph pg]]
   (cond (and (=  rh ph) (= rg pg)) 4
@@ -65,7 +68,7 @@
     (as-> (range 5 34) x1
       (map (fn [n] [n (as-> (g/predict-result s t n) y
                         (measure result y metric-fn))]) x1)
-      (sort-by second x1))))
+      (sort-by first x1))))
 
 
 
