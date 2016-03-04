@@ -63,11 +63,15 @@
     (vals x)
     (metric-fn (map first x) (map second x))))
 
+(defn measure-prediction [s t n metric-fn]
+  (let [result (dc/spieltag s t)
+        prediction (g/predict-result s t n)] 
+    (measure result prediction metric-fn)))
+
 (defn lookback [s t metric-fn]
   (let [result (dc/spieltag s t)]
     (as-> (range 5 34) x1
-      (map (fn [n] [n (as-> (g/predict-result s t n) y
-                        (measure result y metric-fn))]) x1)
+      (map (fn [n] [n (measure-prediction s t n metric-fn)]) x1)
       (sort-by first x1))))
 
 
