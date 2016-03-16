@@ -75,6 +75,13 @@
       (sort-by first x1))))
 
 
-
+(defn optimal-lookback [s t n metric-fn]
+  (as->  (dc/range-spieltage s t n) x
+        (map (fn [[s t]] (lookback s t metric-fn)) x)
+        (map (fn [lb] (into {} lb)) x)
+        (apply merge-with + x)
+        (sort-by second x)
+        #_(reverse x)
+        (first x)))
 
 
