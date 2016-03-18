@@ -82,6 +82,6 @@
         (apply merge-with + x)
         (sort-by second x)
         #_(reverse x)
-        (first x)))
+        (take 3 x)))
 
 
