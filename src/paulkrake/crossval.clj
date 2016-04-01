@@ -75,12 +75,24 @@
       (sort-by first x1))))
 
 
-(defn optimal-lookback [s t n metric-fn]
+(defn optimal-lookback 
+  "Ruft für die letzen n Spieltage vor [s t] die Funktion looback auf.
+   Die Ergebnisse der Aufrufe werden in eine Map umgewandelt und mit der Funktion + gemergt.
+   Die Funktion gibt die summierten lookback Ergebnisse mit den höchsten Punktzahlen zurück.
+ 
+   s : Saison, z.B 1516 
+   t : der nächste ungespielte Spieltag, z.B 28
+   n : über die letzten n Spieltage soll summiert werden
+   metric-fn : die Metrik-Funktion mit der die Abweichung von Ergebnis und Vorhersage berechnet werden soll 
+
+ 
+"
+  [s t n metric-fn]
   (as->  (dc/range-spieltage s t n) x
         (map (fn [[s t]] (lookback s t metric-fn)) x)
         (map (fn [lb] (into {} lb)) x)
         (apply merge-with + x)
-        (sort-by second x)
+        (sort-by second x)  
         #_(reverse x)
         (take 3 x)))
 
