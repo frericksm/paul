@@ -85,6 +85,12 @@
                     (nth v (int (/ c 2)))) 2))
       (nth v (/ c 2)))))
 
+
+(defn merge-to-vec [a b] 
+  (cond (coll? a) (conj (vec a) b)
+        (nil? a)  (vector b)
+        (number? a) (vector a b)))
+
 (defn optimal-lookback 
   "Ruft für die letzen n Spieltage vor [s t] die Funktion looback auf.
    Die Ergebnisse der Aufrufe werden in eine Map umgewandelt und mit der Funktion + gemergt.
@@ -102,9 +108,9 @@
        (dc/range-spieltage s2 t2 n)) 
      (map (fn [[s t]] (lookback s t metric-fn)) x)
      (map (fn [lb] (into {} lb)) x)
-     (reduce (fn [a m] (merge-with vector a m)) {} x)
+     (reduce (fn [a m] (merge-with merge-to-vec a m)) {} x)
      (reduce-kv (fn [m k v] 
-                  (let [v_seq (if (seq? v) v (vector v))]
+                  (let [v_seq (if (coll? v) v (vector v))]
                     (assoc m k (apply metric-value-merge-fn v_seq)))) {} x)
      (sort-by second x)
      (ffirst x)))
