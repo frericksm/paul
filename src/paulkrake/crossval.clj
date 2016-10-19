@@ -31,11 +31,14 @@
        (map (fn [x] (* -1 x)))
        (apply +)))
 
-(defn look-back [min-n max-n  t]
+(defn project-in-interval 
+  "precondition: min-n <= max-n.
+  Returns t if min < t < max, min if t < min and max if t > max"
+  [min-n max-n t]
   (max min-n (min t max-n)))
 
 (defn points [[s t] min-n max-n]
-  (let [n (look-back min-n max-n t)
+  (let [n (project-in-interval min-n max-n t)
         result (as-> (dc/spieltag s t) x 
                  (reduce (fn [a [h g hg gg]] (assoc a [h g] [(int hg) (int gg) ])) nil x))
         prediction (as-> (g/predict-result s t n) x 
