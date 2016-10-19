@@ -77,6 +77,13 @@
       (map (fn [n] [n (measure-prediction s t n metric-fn)]) x1)
       (sort-by first x1))))
 
+(defn median [& seq]
+  (let [c (count seq)
+        v (vec (sort seq))]
+    (if (even? c)
+      (double (/ (+ (nth v (dec (int (/ c 2))))
+                    (nth v (int (/ c 2)))) 2))
+      (nth v (/ c 2)))))
 
 (defn optimal-lookback 
   "Ruft für die letzen n Spieltage vor [s t] die Funktion looback auf.
@@ -84,19 +91,49 @@
    Die Funktion gibt die summierten lookback Ergebnisse mit den höchsten Punktzahlen zurück.
  
    s : Saison, z.B 1516 
-   t : der nächste ungespielte Spieltag, z.B 28
+   t : Spieltag, z.B 28
    n : über die letzten n Spieltage soll summiert werden
-   metric-fn : die Metrik-Funktion mit der die Abweichung von Ergebnis und Vorhersage berechnet werden soll 
-
- 
+   metric-fn : die Metrik-Funktion mit der die Abweichung von Ergebnis und Vorhersage berechnet werden soll
+   metric-value-merge-fn : Funktion, mit der die Ergebnisse des Aufrufs der metric-fn zusammengefasst wird. Z.b + oder median. Wird keine Wert für diesen Parameter übergeben, dann wird die Funktion + verwendet  
 "
-  [s t n metric-fn]
-  (as->  (dc/range-spieltage s t n) x
-        (map (fn [[s t]] (lookback s t metric-fn)) x)
-        (map (fn [lb] (into {} lb)) x)
-        (apply merge-with + x)
-        (sort-by second x)  
-        #_(reverse x)
-        (take 3 x)))
+  ([s t n metric-fn metric-value-merge-fn]
+   (as-> (dc/spieltag-after s t) x 
+     (let [[s2 t2] x]
+       (dc/range-spieltage s2 t2 n)) 
+     (map (fn [[s t]] (lookback s t metric-fn)) x)
+     (map (fn [lb] (into {} lb)) x)
+     (reduce (fn [a m] (merge-with vector a m)) {} x)
+     (reduce-kv (fn [m k v] 
+                  (let [v_seq (if (seq? v) v (vector v))]
+                    (assoc m k (apply metric-value-merge-fn v_seq)))) {} x)
+     (sort-by second x)
+     (ffirst x)))
+  ([s t n metric-fn]
+   (optimal-lookback s t n metric-fn +)
+   ))
 
 
+(defn predict-fn-factory [lookback metric-merge-fn metric-fn]
+  (fn [s t]
+    (let [[s2 t2] (dc/spieltag-add s t -1)
+          olb (optimal-lookback s2 t2 lookback metric-fn metric-merge-fn)]
+      (g/predict-result s t olb))))
+
+(defn accurancy [samplesize lookback metric-merge-fn metric-fn]
+  (let [pf (predict-fn-factory lookback metric-merge-fn metric-fn)]
+    (as-> (dc/sample-of-spieltage 1617 8 958 samplesize) x
+      (map (fn [st]
+             (let [[s t] st
+                   p (measure (dc/spieltag s t) (pf s t) metric-kickerpoints )]
+               p)) x)
+      (apply + x)
+      (double (/ x samplesize)))))
+
+
+(comment 
+  (def accurancy-evaluation
+    (for [l (range 1 10)
+          mf [metric-kickerpoints metric-distance]
+          mvf [+ median]]
+      [[l mf mvf] (accurancy 50 l mvf mf )]))
+)

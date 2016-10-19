@@ -118,18 +118,20 @@
          x)))
 
 (defn stat-data-file [saison]
-  (let [f (clojure.java.io/file (format "resources/stat-%s.txt" (str saison)))]
-    (if (.exists f) f)))
+  (clojure.java.io/file (format "resources/stat-%s.txt" (str saison))))
 
 (defn stat-data-local [p-saison p-spieltag-nr]
-  (println "stat-data-local" p-saison p-spieltag-nr)
-  (as-> (line-seq (clojure.java.io/reader (stat-data-file p-saison))) x
-    (map clojure.edn/read-string x)
-    (filter (fn [{:keys [saison spieltag] :as m}]
-              (and (= (str p-saison) saison)
-                   (= p-spieltag-nr spieltag))) x)
-    (map :data x)
-    (first x)))
+  #_(println "stat-data-local" p-saison p-spieltag-nr)
+  (as-> (stat-data-file p-saison) x
+    (if (.exists x) 
+      (as-> x y
+        (line-seq (clojure.java.io/reader y))
+        (map clojure.edn/read-string y)
+        (filter (fn [{:keys [saison spieltag] :as m}]
+                  (and (= (str p-saison) saison)
+                       (= p-spieltag-nr spieltag))) y)
+        (map :data y)
+        (first y)))))
 
 (defn stat-data-unmemoized [saison spieltag-nr]
   (as-> (stat-data-file saison) x
@@ -171,26 +173,47 @@
 (defn passes-complete-percentage [saison spieltag-nr]
   (data saison spieltag-nr "passes_complete_percentage"))
 
-(defn calc [saison t n]
-  (let [new_saison_1 (as-> saison x
+
+(defn spieltag-add 
+  "Berechnet den n-ten Spieltag vor dem Spieltag [saison t]"
+  [saison t n]
+  {:pre  [(<= 1 t 34)]
+   :post [(<= 1 (second %) 34)]}
+  (let [tmod34 (dec t)
+        new_saison_1 (as-> saison x
                            (str x)
                            (.substring x 0 2)
                            (Integer/valueOf x))
-        new_saison_2 (- new_saison_1 (int (/ (+ n (- 34 t)) 34)))
-        new_saison_3 (format "%02d%02d" (mod new_saison_2 100) (mod (inc new_saison_2) 100))
-        new_tag_1  (mod (- t n) 34) 
-        new_tag_2  (if (= 0 new_tag_1) 34 new_tag_1)]
+        new_saison_2 (int (/ (+ (* 34 new_saison_1) (+ tmod34 n) ) 34))
+        new_saison_3 (format "%02d%02d" 
+                             (mod new_saison_2 100) 
+                             (mod (inc new_saison_2) 100))
+        new_tag_1  (mod (+ tmod34 n) 34) 
+        new_tag_2  (inc new_tag_1)]
     [new_saison_3 new_tag_2]))
 
+(defn spieltag-before [s t]
+  (spieltag-add s t -1))
+
+(defn spieltag-after [s t]
+  (spieltag-add s t 1))
+
 (defn range-spieltage 
+  "Berechnet eine Range von Spieltagen"
   ([saison spieltag n1 n2]
    (as-> (range n1 n2) x
-     (map (fn [i] (calc saison spieltag i)) x)
+     (map (fn [i] (spieltag-add saison spieltag (* -1 i))) x)
      (reverse x)
      ))
   ([saison spieltag n]
    (range-spieltage saison spieltag 1 (+ 1 n))))
    
+
+(defn sample-of-spieltage [s t n m]
+  (as->  (range-spieltage s t n) x
+    (shuffle x)
+    (take m x))
+)
 (defn dump [saison spieltag-bis out-dir]
   (let [st (range-spieltage saison spieltag-bis 0 spieltag-bis)
         st-d-local (reduce (fn [a [s t]] (assoc a [s t] (stat-data-local s t))) 
