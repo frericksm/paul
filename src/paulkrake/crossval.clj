@@ -125,21 +125,22 @@
           olb (optimal-lookback s2 t2 lookback metric-fn metric-merge-fn)]
       (g/predict-result s t olb))))
 
-(defn accurancy [samplesize lookback metric-merge-fn metric-fn]
+(defn accurancy [sample-spieltage lookback metric-merge-fn metric-fn]
   (let [pf (predict-fn-factory lookback metric-merge-fn metric-fn)]
-    (as-> (dc/sample-of-spieltage 1617 8 958 samplesize) x
+    (as-> sample-spieltage x
       (map (fn [st]
              (let [[s t] st
                    p (measure (dc/spieltag s t) (pf s t) metric-kickerpoints )]
                p)) x)
       (apply + x)
-      (double (/ x samplesize)))))
+      (double (/ x (count sample-spieltage))))))
 
 
 (comment 
   (def accurancy-evaluation
-    (for [l (range 1 10)
-          mf [metric-kickerpoints metric-distance]
-          mvf [+ median]]
-      [[l mf mvf] (accurancy 50 l mvf mf )]))
+    (let [sample (dc/sample-of-spieltage 1415 34 900 200)]
+      (for [l (range 1 10)
+            mf [metric-kickerpoints metric-distance]
+            mvf [+ median]]
+        [[l mf mvf] (accurancy sample l mvf mf )])))
 )
