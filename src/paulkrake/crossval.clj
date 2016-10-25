@@ -85,6 +85,12 @@
                     (nth v (int (/ c 2)))) 2))
       (nth v (/ c 2)))))
 
+
+(defn merge-to-vec [a b] 
+  (cond (coll? a) (conj (vec a) b)
+        (nil? a)  (vector b)
+        (number? a) (vector a b)))
+
 (defn optimal-lookback 
   "Ruft für die letzen n Spieltage vor [s t] die Funktion looback auf.
    Die Ergebnisse der Aufrufe werden in eine Map umgewandelt und mit der Funktion + gemergt.
@@ -102,9 +108,9 @@
        (dc/range-spieltage s2 t2 n)) 
      (map (fn [[s t]] (lookback s t metric-fn)) x)
      (map (fn [lb] (into {} lb)) x)
-     (reduce (fn [a m] (merge-with vector a m)) {} x)
+     (reduce (fn [a m] (merge-with merge-to-vec a m)) {} x)
      (reduce-kv (fn [m k v] 
-                  (let [v_seq (if (seq? v) v (vector v))]
+                  (let [v_seq (if (coll? v) v (vector v))]
                     (assoc m k (apply metric-value-merge-fn v_seq)))) {} x)
      (sort-by second x)
      (ffirst x)))
@@ -119,21 +125,22 @@
           olb (optimal-lookback s2 t2 lookback metric-fn metric-merge-fn)]
       (g/predict-result s t olb))))
 
-(defn accurancy [samplesize lookback metric-merge-fn metric-fn]
+(defn accurancy [sample-spieltage lookback metric-merge-fn metric-fn]
   (let [pf (predict-fn-factory lookback metric-merge-fn metric-fn)]
-    (as-> (dc/sample-of-spieltage 1617 8 958 samplesize) x
+    (as-> sample-spieltage x
       (map (fn [st]
              (let [[s t] st
                    p (measure (dc/spieltag s t) (pf s t) metric-kickerpoints )]
                p)) x)
       (apply + x)
-      (double (/ x samplesize)))))
+      (double (/ x (count sample-spieltage))))))
 
 
 (comment 
   (def accurancy-evaluation
-    (for [l (range 1 10)
-          mf [metric-kickerpoints metric-distance]
-          mvf [+ median]]
-      [[l mf mvf] (accurancy 50 l mvf mf )]))
+    (let [sample (dc/sample-of-spieltage 1415 34 900 200)]
+      (for [l (range 1 10)
+            mf [metric-kickerpoints metric-distance]
+            mvf [+ median]]
+        [[l mf mvf] (accurancy sample l mvf mf )])))
 )
