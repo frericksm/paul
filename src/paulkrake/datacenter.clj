@@ -173,6 +173,10 @@
 (defn passes-complete-percentage [saison spieltag-nr]
   (data saison spieltag-nr "passes_complete_percentage"))
 
+(defn gauss-klammer [number]
+  (if (< number 0)
+    (if (< number (int number)) (dec (int number)) (int number))
+    (int number)))
 
 (defn spieltag-add 
   "Berechnet den n-ten Spieltag vor dem Spieltag [saison t]"
@@ -184,7 +188,7 @@
                            (str x)
                            (.substring x 0 2)
                            (Integer/valueOf x))
-        new_saison_2 (int (/ (+ (* 34 new_saison_1) (+ tmod34 n) ) 34))
+        new_saison_2 (+ new_saison_1 (gauss-klammer (/ (+ tmod34 n) 34)))
         new_saison_3 (format "%02d%02d" 
                              (mod new_saison_2 100) 
                              (mod (inc new_saison_2) 100))
@@ -214,6 +218,7 @@
     (shuffle x)
     (take m x))
 )
+
 (defn dump [saison spieltag-bis out-dir]
   (let [st (range-spieltage saison spieltag-bis 0 spieltag-bis)
         st-d-local (reduce (fn [a [s t]] (assoc a [s t] (stat-data-local s t))) 
@@ -227,3 +232,19 @@
                (hash-map :saison s :spieltag t :data (stat-data-remote s t)))) x)
       (doseq [line x] (.write wtr (str (pr-str line) "\n"))))
     )))
+
+(defn min-max-spieltag []
+   (let [saison-0001 "0001"
+         min-spieltag (as-> (range (* 34 51)) y
+                        (map (fn [i] (spieltag-add saison-0001 1 (* -1 i))) y)
+                        (filter (fn [[s t]] (and (.exists (stat-data-file s))
+                                                 (stat-data-local s t))) y)
+                        (last y))
+         max-spieltag (as-> (range (* 34 49)) y
+                        (map (fn [i] (spieltag-add saison-0001 1 i)) y)
+                        (filter (fn [[s t]] (and (.exists (stat-data-file s))
+                                                 (stat-data-local s t))) y)
+                        (last y))]
+     (vector min-spieltag max-spieltag)))
+
+     
