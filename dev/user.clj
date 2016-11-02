@@ -13,6 +13,7 @@
         [paulkrake.datacenter]
         [paulkrake.data]
         [paulkrake.ml]
+        [paulkrake.mlprep]
         [paulkrake.statistik]
         [paulkrake.predict]
         [paulkrake.goals]
