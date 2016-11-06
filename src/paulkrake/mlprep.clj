@@ -20,26 +20,33 @@
     (reduce (fn [a [h g hg gg]]
               (assoc a [h g] [hg gg])) {} x)))
 
-(defn input-vector [[s t :as spieltag] alle-vereine]
-  (let [flag-fn (fn [b] (if b 1 0))
-        
-        this-spieltag (spieltag-to-map s t )
-        [ns nt] (dc/spieltag-after s t)
-        next-spieltag (spieltag-to-map  ns nt)
-        m1 (for [h alle-vereine g alle-vereine :when (not= h g)]
-             (let [[hg gg] (get this-spieltag [h g] [0 0])]
-               (vector (flag-fn (contains? this-spieltag [h g]))
-                       hg gg
-                       (flag-fn (contains? next-spieltag [h g])))))]
-    (as-> m1 x
-      (apply concat x))))
+(defn flag-fn [b] (if b 1 0))
 
-(defn output-vector [[s t :as spieltag]]
-  (let [[ns nt] (dc/spieltag-after s t)
-        next-spieltag (sort-by first (dc/spieltag  ns nt))
-        m1 (map (fn [[h g hg gg]] [hg gg]) next-spieltag)]
-    (as-> m1 x
-      (apply concat x))))
+(defn spieltag-as-list [[s t :as spieltag] alle-vereine]
+  (let [sp (reduce (fn [a [h g hg gg]]
+                     (as-> a x
+                       (assoc x h hg)
+                       (assoc x g gg))) {} (dc/spieltag s t))]
+    (as-> alle-vereine x
+      (map (fn [v] (get sp v -1)) x))))
+
+(defn spieltag-heim-gast-as-list [[s t :as spieltag] alle-vereine]
+  (let [sp (reduce (fn [a [h g hg gg]]
+                     (as-> a x
+                       (assoc x h 1)
+                       (assoc x g -1))) {} (dc/spieltag s t))]
+    (as-> alle-vereine x
+      (map (fn [v] (get sp v 0)) x))))
+
+(defn input-vector [[s t :as spieltag] alle-vereine]
+  (let [this-heim-gast-liste (spieltag-heim-gast-as-list spieltag alle-vereine)
+        spieltag (spieltag-as-list spieltag alle-vereine)
+        next-heim-gast-liste (spieltag-heim-gast-as-list (dc/spieltag-after s t)
+                                                         alle-vereine)]
+    (concat this-heim-gast-liste spieltag next-heim-gast-liste)))
+
+(defn output-vector [[s t :as spieltag] alle-vereine]
+  (spieltag-as-list (dc/spieltag-after s t) alle-vereine))
 
 
 #_(as-> (dc/spieltag 1516 1) x
