@@ -2,12 +2,13 @@
 
 (set-env!
  :source-paths #{"src"}
- :dependencies '[[org.clojure/clojure "1.6.0"] 
-                 [com.stuartsierra/component "0.2.1"]   
-                 [enlive "1.1.5"]           
+ :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
+                 [com.stuartsierra/component "0.2.1"]
+                 [enlive "1.1.5"]
                  [incanter "1.5.5"]
-                 [org.clojure/data.json "0.2.5"]])
-
+                 [org.clojure/data.json "0.2.5"]
+                 ;;[svm-clj "0.1.3"]
+                 ])
 
 (require '[paulkrake.predict])
 (require '[paulkrake.datacenter])

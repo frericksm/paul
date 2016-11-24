@@ -1,10 +1,16 @@
 (set-env!
- :source-paths #{"src"}
- :dependencies '[[org.clojure/clojure "1.7.0"] 
-                 [com.stuartsierra/component "0.2.1"]   
-                 [enlive "1.1.5"]           
+ :source-paths #{"src" "dev"}
+ :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
+                 [com.stuartsierra/component "0.2.1"]
+                 [enlive "1.1.5"]
                  [incanter "1.5.5"]
-                 [org.clojure/data.json "0.2.5"]])
+                 [org.clojure/data.json "0.2.5"]
+                 ;;[svm-clj "0.1.3"]
+
+
+                 [org.clojure/tools.namespace "0.2.3"]
+                 [org.clojure/java.classpath "0.2.0"]
+                 ])
 
 (task-options!
  repl {:server true
