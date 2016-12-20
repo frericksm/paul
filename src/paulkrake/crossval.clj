@@ -112,7 +112,7 @@
      (reduce-kv (fn [m k v] 
                   (let [v_seq (if (coll? v) v (vector v))]
                     (assoc m k (apply metric-value-merge-fn v_seq)))) {} x)
-     (sort-by second x)
+     (sort-by (fn [[n m]] (+ n (* 1000 m))) x)
      (ffirst x)))
   ([s t n metric-fn]
    (optimal-lookback s t n metric-fn +)
