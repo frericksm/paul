@@ -92,15 +92,15 @@
         (number? a) (vector a b)))
 
 (defn optimal-lookback 
-  "Ruft für die letzen n Spieltage vor [s t] die Funktion looback auf.
-   Die Ergebnisse der Aufrufe werden in eine Map umgewandelt und mit der Funktion + gemergt.
+  "Ruft für die letzen n Spieltage vor [s t] die Funktion lookback auf.
+   Die Ergebnisse der Aufrufe werden in eine Map umgewandelt und mit der Funktion metric-value-merge-fn (default: +) gemergt.
    Die Funktion gibt die summierten lookback Ergebnisse mit den höchsten Punktzahlen zurück.
  
    s : Saison, z.B 1516 
    t : Spieltag, z.B 28
    n : über die letzten n Spieltage soll summiert werden
    metric-fn : die Metrik-Funktion mit der die Abweichung von Ergebnis und Vorhersage berechnet werden soll
-   metric-value-merge-fn : Funktion, mit der die Ergebnisse des Aufrufs der metric-fn zusammengefasst wird. Z.b + oder median. Wird keine Wert für diesen Parameter übergeben, dann wird die Funktion + verwendet  
+   metric-value-merge-fn : Funktion mit der die Ergebnisse des Aufrufs der metric-fn zusammengefasst wird. Z.b + oder median. Wird kein Wert für diesen Parameter übergeben, dann wird die Funktion + verwendet  
 "
   ([s t n metric-fn metric-value-merge-fn]
    (as-> (dc/spieltag-after s t) x 
