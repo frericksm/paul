@@ -1,6 +1,7 @@
 (ns paulkrake.crossval
   (:require [paulkrake.datacenter :as dc]
-            [paulkrake.goals :as g]))
+            [paulkrake.goals :as g]
+            [paulkrake.mwua :as m]))
 
 (defn metric-distance 
   "euklidische Norm"
@@ -144,3 +145,27 @@
             mvf [+ median]]
         [[l mf mvf] (accurancy sample l mvf mf )])))
 )
+
+
+(defn cost-fn-factory [s t]
+  (fn cost-fn [n res]
+    (- 1 (/ (* -1  (measure (dc/spieltag s t)
+                            (g/predict-result s t n)
+                            metric-kickerpoints))
+            36.0))))
+
+(def experts [5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22])
+
+(def init-state (m/->State  experts (vec (repeat (count experts) 1)) 0.5 (java.security.SecureRandom.)))
+
+(defn expert-distribution [sa ta n]
+  (loop [state init-state
+         sps (dc/range-spieltage sa ta n)
+         ]
+    (let [[s t] (first sps)
+          rest_sps (rest sps)
+          new_state (m/step state (dc/spieltag s t) (cost-fn-factory s t))]
+      (if (empty? rest_sps)
+        new_state
+        (recur new_state
+               rest_sps)))))
