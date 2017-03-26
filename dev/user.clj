@@ -18,6 +18,7 @@
         [paulkrake.predict]
         [paulkrake.goals]
         [paulkrake.goals-ml]
+        [paulkrake.mwua]
         [paulkrake.shots]
         [paulkrake.crossval]
         [paulkrake.goals-per-shots]))

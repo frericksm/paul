@@ -1,6 +1,7 @@
 (ns paulkrake.crossval
   (:require [paulkrake.datacenter :as dc]
-            [paulkrake.goals :as g]))
+            [paulkrake.goals :as g]
+            [paulkrake.mwua :as m]))
 
 (defn metric-distance 
   "euklidische Norm"
@@ -92,17 +93,17 @@
         (number? a) (vector a b)))
 
 (defn optimal-lookback 
-  "Ruft für die letzen n Spieltage vor [s t] die Funktion looback auf.
-   Die Ergebnisse der Aufrufe werden in eine Map umgewandelt und mit der Funktion + gemergt.
+  "Ruft für die letzen n Spieltage vor [s t] die Funktion lookback auf.
+   Die Ergebnisse der Aufrufe werden in eine Map umgewandelt und mit der Funktion metric-value-merge-fn (default: +) gemergt.
    Die Funktion gibt die summierten lookback Ergebnisse mit den höchsten Punktzahlen zurück.
  
    s : Saison, z.B 1516 
    t : Spieltag, z.B 28
    n : über die letzten n Spieltage soll summiert werden
    metric-fn : die Metrik-Funktion mit der die Abweichung von Ergebnis und Vorhersage berechnet werden soll
-   metric-value-merge-fn : Funktion, mit der die Ergebnisse des Aufrufs der metric-fn zusammengefasst wird. Z.b + oder median. Wird keine Wert für diesen Parameter übergeben, dann wird die Funktion + verwendet  
+   metric-value-merge-fn : Funktion mit der die Ergebnisse des Aufrufs der metric-fn zusammengefasst wird. Z.b + oder median. Wird kein Wert für diesen Parameter übergeben, dann wird die Funktion + verwendet  
 "
-  ([s t n metric-fn metric-value-merge-fn-1 metric-value-merge-fn-2]
+  ([s t n metric-fn metric-value-merge-fn]
    (as-> (dc/spieltag-after s t) x 
      (let [[s2 t2] x]
        (dc/range-spieltage s2 t2 n)) 
@@ -111,49 +112,84 @@
      (reduce (fn [a m] (merge-with merge-to-vec a m)) {} x)
      (reduce-kv (fn [m k v] 
                   (let [v_seq (if (coll? v) v (vector v))]
-                    (assoc m k (vector (apply metric-value-merge-fn-1 v_seq) (apply metric-value-merge-fn-2 v_seq))))) {} x)
-     (sort-by second x)
-     (ffirst x)))
+                    (assoc m k (apply metric-value-merge-fn v_seq)))) {} x)
+     (sort-by (fn [[n m]] (+ n (* 1000 m))) x)
+     #_(ffirst x)))
   ([s t n metric-fn]
    (optimal-lookback s t n metric-fn +)
    ))
 
 
-(defn predict-fn-factory [lookback metric-fn metric-merge-fn-1 metric-merge-fn-2]
+(defn predict-fn-factory [lookback metric-merge-fn metric-fn]
   (fn [s t]
     (let [[s2 t2] (dc/spieltag-add s t -1)
-          olb (optimal-lookback s2 t2 lookback metric-fn metric-merge-fn-1 metric-merge-fn-2)]
+          olb (optimal-lookback s2 t2 lookback metric-fn metric-merge-fn)]
       (g/predict-result s t olb))))
 
-(defn accuracy [sample-spieltage lookback metric-fn metric-merge-fn-1 metric-merge-fn-2]
-  (let [pf (predict-fn-factory lookback metric-fn metric-merge-fn-1 metric-merge-fn-2)]
+(defn accurancy [sample-spieltage lookback metric-merge-fn metric-fn]
+  (let [pf (predict-fn-factory lookback metric-merge-fn metric-fn)]
     (as-> sample-spieltage x
       (map (fn [st]
              (let [[s t] st
-                   p (measure (dc/spieltag s t) (pf s t) metric-kickerpoints)]
+                   p (measure (dc/spieltag s t) (pf s t) metric-kickerpoints )]
                p)) x)
       (apply + x)
       (double (/ x (count sample-spieltage))))))
 
-(defn sum-last-fn [i]
-  (fn [& args] (apply + (take-last i args))))
 
 (comment 
-  (def accuracy-evaluation
+  (def accurancy-evaluation
     (let [sample (dc/sample-of-spieltage 1415 34 900 200)]
-      (for [l (range 1 34)
+      (for [l (range 1 10)
             mf [metric-kickerpoints metric-distance]
-            mmf1 [+ median]
-            mmf2 (range 1 10)]
-        [[l mf mmf1 mmf2] (accuracy sample l mf mmf1 (sum-last-f mmf2))])))
-
-
-(def result
-        (future
-           (let [sample (sample-of-spieltage 1415 34 900 340)]
-             (for [l (range 1 34)
-                   mf [metric-kickerpoints metric-distance]
-                   mmf1 [+ median]
-                   mmf2 (range 1 10)]
-               [[l mf mmf1 mmf2] (accuracy sample l mf mmf1 (sum-last-fn mmf2))])))))
+            mvf [+ median]]
+        [[l mf mvf] (accurancy sample l mvf mf )])))
 )
+
+
+(defn cost-fn-factory [s t]
+  (fn cost-fn [n res]
+    (- 1 (/ (* -1  (measure (dc/spieltag s t)
+                            (g/predict-result s t n)
+                            metric-kickerpoints))
+            36.0))))
+
+(def experts [5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22])
+
+(def init-state (m/->State  experts (vec (repeat (count experts) 1)) 0.5 (java.security.SecureRandom.)))
+
+(defn expert-distribution [sa ta n]
+  (loop [state init-state
+         sps (dc/range-spieltage sa ta n)
+         ]
+    (let [[s t] (first sps)
+          rest_sps (rest sps)
+          new_state (m/step state (dc/spieltag s t) (cost-fn-factory s t))]
+      (if (empty? rest_sps)
+        new_state
+        (recur new_state
+               rest_sps)))))
+
+
+(def optimal-state
+  (m/->State experts
+             [0.021403762242807677
+              0.004329609613292072
+              0.006363376586743361
+              0.006487084723708817
+              0.012484055106209008
+              0.0151347454247939
+              0.010701881121403843
+              0.03397635470031012
+              0.07339298557225857
+              0.10181402538789418
+              0.12827763376073878
+              0.11876901725111838
+              0.05290558261190453
+              0.058252051252245175
+              0.0748197924550056
+              0.08080984550292991
+              0.094267031462827
+              0.1058111652238092]
+             0.5
+             (java.security.SecureRandom.)))

@@ -72,3 +72,5 @@
                           (goals-data spieltage y)
                           (assoc a i y)))
               {} x))))
+
+
