@@ -102,7 +102,7 @@
    metric-fn : die Metrik-Funktion mit der die Abweichung von Ergebnis und Vorhersage berechnet werden soll
    metric-value-merge-fn : Funktion, mit der die Ergebnisse des Aufrufs der metric-fn zusammengefasst wird. Z.b + oder median. Wird keine Wert für diesen Parameter übergeben, dann wird die Funktion + verwendet  
 "
-  ([s t n metric-fn metric-value-merge-fn]
+  ([s t n metric-fn metric-value-merge-fn-1 metric-value-merge-fn-2]
    (as-> (dc/spieltag-after s t) x 
      (let [[s2 t2] x]
        (dc/range-spieltage s2 t2 n)) 
@@ -111,36 +111,49 @@
      (reduce (fn [a m] (merge-with merge-to-vec a m)) {} x)
      (reduce-kv (fn [m k v] 
                   (let [v_seq (if (coll? v) v (vector v))]
-                    (assoc m k (apply metric-value-merge-fn v_seq)))) {} x)
-     (sort-by (fn [[n m]] (+ n (* 1000 m))) x)
+                    (assoc m k (vector (apply metric-value-merge-fn-1 v_seq) (apply metric-value-merge-fn-2 v_seq))))) {} x)
+     (sort-by second x)
      (ffirst x)))
   ([s t n metric-fn]
    (optimal-lookback s t n metric-fn +)
    ))
 
 
-(defn predict-fn-factory [lookback metric-merge-fn metric-fn]
+(defn predict-fn-factory [lookback metric-fn metric-merge-fn-1 metric-merge-fn-2]
   (fn [s t]
     (let [[s2 t2] (dc/spieltag-add s t -1)
-          olb (optimal-lookback s2 t2 lookback metric-fn metric-merge-fn)]
+          olb (optimal-lookback s2 t2 lookback metric-fn metric-merge-fn-1 metric-merge-fn-2)]
       (g/predict-result s t olb))))
 
-(defn accurancy [sample-spieltage lookback metric-merge-fn metric-fn]
-  (let [pf (predict-fn-factory lookback metric-merge-fn metric-fn)]
+(defn accuracy [sample-spieltage lookback metric-fn metric-merge-fn-1 metric-merge-fn-2]
+  (let [pf (predict-fn-factory lookback metric-fn metric-merge-fn-1 metric-merge-fn-2)]
     (as-> sample-spieltage x
       (map (fn [st]
              (let [[s t] st
-                   p (measure (dc/spieltag s t) (pf s t) metric-kickerpoints )]
+                   p (measure (dc/spieltag s t) (pf s t) metric-kickerpoints)]
                p)) x)
       (apply + x)
       (double (/ x (count sample-spieltage))))))
 
+(defn sum-last-fn [i]
+  (fn [& args] (apply + (take-last i args))))
 
 (comment 
-  (def accurancy-evaluation
+  (def accuracy-evaluation
     (let [sample (dc/sample-of-spieltage 1415 34 900 200)]
-      (for [l (range 1 10)
+      (for [l (range 1 34)
             mf [metric-kickerpoints metric-distance]
-            mvf [+ median]]
-        [[l mf mvf] (accurancy sample l mvf mf )])))
+            mmf1 [+ median]
+            mmf2 (range 1 10)]
+        [[l mf mmf1 mmf2] (accuracy sample l mf mmf1 (sum-last-f mmf2))])))
+
+
+(def result
+        (future
+           (let [sample (sample-of-spieltage 1415 34 900 340)]
+             (for [l (range 1 34)
+                   mf [metric-kickerpoints metric-distance]
+                   mmf1 [+ median]
+                   mmf2 (range 1 10)]
+               [[l mf mmf1 mmf2] (accuracy sample l mf mmf1 (sum-last-fn mmf2))])))))
 )
