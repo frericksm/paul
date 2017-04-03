@@ -216,8 +216,7 @@
 (defn sample-of-spieltage [s t n m]
   (as->  (range-spieltage s t n) x
     (shuffle x)
-    (take m x))
-)
+    (take m x)))
 
 (defn dump [saison spieltag-bis out-dir]
   (let [st (range-spieltage saison spieltag-bis 0 spieltag-bis)
