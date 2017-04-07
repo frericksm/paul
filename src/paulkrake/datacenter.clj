@@ -179,7 +179,7 @@
     (int number)))
 
 (defn spieltag-add 
-  "Berechnet den n-ten Spieltag vor dem Spieltag [saison t]"
+  "Berechnet den n-ten Spieltag nach dem Spieltag [saison t]"
   [saison t n]
   {:pre  [(<= 1 t 34)]
    :post [(<= 1 (second %) 34)]}

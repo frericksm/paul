@@ -21,6 +21,7 @@
         [paulkrake.mwua]
         [paulkrake.shots]
         [paulkrake.crossval]
+        [paulkrake.expert-selection]
         [paulkrake.goals-per-shots]))
 
 (def system nil)
