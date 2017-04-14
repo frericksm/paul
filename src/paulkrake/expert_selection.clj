@@ -41,20 +41,19 @@
 (def init-state (m/->State  experts (vec (repeat (count experts) 1)) 0.5 (java.security.SecureRandom.)))
 
 (defn expert-distribution 
-  ([sa ta n]
-   (expert-distribution sa ta n init-state))
-  ([sa ta n state]
-   (loop [state state
-          sps (dc/range-spieltage sa ta n)
-          ]
-     (let [[s t] (first sps)
-           rest_sps (rest sps)
-           new_state (m/step state (dc/spieltag s t)
-                             (cost-fn-factory s t))]
-       (if (empty? rest_sps)
-         new_state
-         (recur new_state
-                rest_sps))))))
+   ([sa ta n]
+   (let [[sl tl] (dc/spieltag-add sa ta (* -1 n))
+         [sn tn] (dc/spieltag-add sa ta 1)]
+     (loop [state (read-state sl tl)
+            sps (dc/range-spieltage sn tn n)]
+       (let [[s t] (first sps)
+             rest_sps (rest sps)
+             new_state (m/step state (dc/spieltag s t)
+                               (cost-fn-factory s t))]
+         (if (empty? rest_sps)
+           (do (write-state s t new_state) new_state)
+           (recur new_state
+                  rest_sps)))))))
 
 ;;(expert-distribution 1617 27 900)
 (def optistate 
