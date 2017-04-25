@@ -38,39 +38,32 @@
 #_(def experts [5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22])
 (def experts [12 13 14 15 16 17 18 19 20 21 22])
 
-(def init-state (m/->State  experts (vec (repeat (count experts) 1)) 0.5 (java.security.SecureRandom.)))
+(defn init-state [experts]
+  (m/->State  experts (vec (repeat (count experts) 1)) 0.5 (java.security.SecureRandom.)))
 
-(defn expert-distribution 
-   ([sa ta n]
+(defn expert-distribution
+  "Liefert eine Map die den Schlüssel [s t] auf eine paulkrake.mwua->State abbildet. Der Spieltag ([sa ta] - n) wird auf den init-state abgebildet"
+  ([sa ta n]
+   (let [[sl tl] (dc/spieltag-add sa ta (* -1 n))
+         state (read-state sl tl)]
+     (expert-distribution sa ta n state)))
+  ([sa ta n init-state]
    (let [[sl tl] (dc/spieltag-add sa ta (* -1 n))
          [sn tn] (dc/spieltag-add sa ta 1)]
-     (loop [state (read-state sl tl)
-            sps (dc/range-spieltage sn tn n)]
+     (loop [state init-state
+            sps (dc/range-spieltage sn tn n)
+            spieltag2state {[sl tl] state}]
        (let [[s t] (first sps)
              rest_sps (rest sps)
              new_state (m/step state (dc/spieltag s t)
-                               (cost-fn-factory s t))]
+                               (cost-fn-factory s t))
+             new_spieltag2state (assoc spieltag2state [s t] new_state)]
          (if (empty? rest_sps)
-           (do (write-state s t new_state) new_state)
+           new_spieltag2state
            (recur new_state
-                  rest_sps)))))))
-
-;;(expert-distribution 1617 27 900)
-(def optistate 
-  (m/->State [12 13 14 15 16 17 18 19 20 21 22]
-             [0.011000381577724726
-              0.002497687136383716
-              0.029938418498140627
-              0.07992598836427936
-              0.3801942161457011
-              0.03560298028991777
-              0.0246950216758353
-              0.0484481795549259
-              0.08971388861251939
-              0.1318555965299911
-              0.16612764161458096]
-             0.5
-             (java.security.SecureRandom.)))
+                  rest_sps
+                  new_spieltag2state
+                  )))))) )
 
 (defn expert-predict [s t]
   (let [[sn tn] (dc/spieltag-add s t -1)
