@@ -72,3 +72,11 @@
         n (nth (:experts state_last) i)]
     (println n)
     (g/predict-result s t n)))
+
+
+(comment 
+
+(doseq [[[s t] v] (expert-distribution 1617 31 1 )]
+        (write-state s t v ))
+
+)
