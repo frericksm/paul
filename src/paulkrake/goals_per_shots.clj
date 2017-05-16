@@ -28,14 +28,6 @@
 (defn new-rating-gps [data games]
   (s/new-rating data games gps-to-score-fn))
 
-(defn predict-gps
-  ([data games]
-     (predict-gps data games 1.0))
-  ([data games faktor-sigma]
-     (as-> games x
-           (map (fn [[ h g]] (p/predict-single-game data h g faktor-sigma score-to-gps-fn)) x)
-           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
-
 (defn gps-data
   ([saison spieltag-nr-von spieltag-nr-bis]
      (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x

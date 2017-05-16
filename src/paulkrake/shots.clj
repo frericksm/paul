@@ -26,14 +26,6 @@
 (defn new-rating-shots [data games]
   (s/new-rating data games shots-to-score-fn))
 
-(defn predict-shots
-  ([data games]
-     (predict-shots data games 1.0))
-  ([data games faktor-sigma]
-     (as-> games x
-           (map (fn [[ h g]] (p/predict-single-game data h g faktor-sigma score-to-shots-fn)) x)
-           (map (fn [[h g [hmin hmax] [gmin gmax]]] (format "%24s - %24s   [%.2f - %.2f] : [%.2f - %.2f]" h g hmin hmax gmin gmax)) x))))
-
 (defn shots-data
   ([saison spieltag-nr-von spieltag-nr-bis]
      (as-> (s/initial-rating-data (s/vereine (dc/spieltag saison 1))) x

@@ -104,9 +104,6 @@
                  (into {} x))]
     result))
 
-(defn apply-to-predicted-scores [inverse-fn [[hmin hmax] [gmin gmax]]]
-  [[(inverse-fn hmin)  (inverse-fn hmax)] [(inverse-fn gmin) (inverse-fn gmax)]])
-
 (defn tabelle
   ([data]
      (->> data
