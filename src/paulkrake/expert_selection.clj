@@ -42,37 +42,33 @@
   (m/->State  experts (vec (repeat (count experts) 1)) 0.5 (java.security.SecureRandom.)))
 
 (defn expert-distribution
-  "Liefert eine Map die den Schlüssel [s t] auf eine paulkrake.mwua->State abbildet. Der Spieltag ([sa ta] - n) wird auf den init-state abgebildet"
-  ([sa ta n]
-   (let [[sl tl] (dc/spieltag-add sa ta (* -1 n))
-         state (read-state sl tl)]
-     (expert-distribution sa ta n state)))
-  ([sa ta n init-state]
-   (let [[sl tl] (dc/spieltag-add sa ta (* -1 n))
-         [sn tn] (dc/spieltag-add sa ta 1)]
-     (loop [state init-state
-            sps (dc/range-spieltage sn tn n)
-            spieltag2state {[sl tl] state}]
-       (let [[s t] (first sps)
-             rest_sps (rest sps)
-             new_state (m/step state (dc/spieltag s t)
-                               (cost-fn-factory s t))
-             new_spieltag2state (assoc spieltag2state [s t] new_state)]
-         (if (empty? rest_sps)
-           new_spieltag2state
-           (recur new_state
-                  rest_sps
-                  new_spieltag2state
-                  )))))) )
+  "Nimmt eine Liste von Spielttage als Parameter spielttage.
+  In der Reihenfolge der Spieltage in der Liste wird die Entwicklung des init-state berechnet"
+  [spieltage init-state]
+  (loop [state init-state
+         sps spieltage]
+    (let [[s t] (first sps)
+          rest_sps (rest sps)
+          new_state (m/step state (dc/spieltag s t)
+                            (cost-fn-factory s t))]
+      (if (empty? rest_sps)
+        new_state
+        (recur new_state
+               rest_sps )))))
 
-(defn expert-predict [s t]
-  (let [[sn tn] (dc/spieltag-add s t -1)
-        state_last (read-state sn tn)
-        i (m/draw state_last)
-        n (nth (:experts state_last) i)]
+(defn expert-predict [s t exp-state]
+  (let [i (m/draw exp-state)
+        n (nth (:experts exp-state) i)]
     (println n)
     (g/predict-result s t n)))
 
+
+
+(defn best-experts [s t]
+  (as-> (dc/range-spieltage s t 1200) x
+    (filter (fn [[s ta]] (= ta t)) x)
+    (expert-distribution x (init-state [5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25] ))
+    (m/experts-sorted-by-weight x)))
 
 (comment 
 

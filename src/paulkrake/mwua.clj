@@ -24,6 +24,7 @@
 
 (defn step [{:keys [experts weights learning-rate] :as state} outcome cost-fn]
   (as-> weights x
+    (normalize x)
     (map-indexed (fn [i w]
                    (let [costs (cost-fn (nth experts i) outcome)
                          factor (if (>= costs 0)
@@ -34,4 +35,9 @@
     (normalize x)
     (assoc state :weights x)))
 
+(defn experts-sorted-by-weight
+  [{:keys [experts weights learning-rate] :as state}]
+  (as-> (map (fn [e w] (vector e w)) experts  weights) x
+    (sort-by second x)
+    (reverse x)))
 
