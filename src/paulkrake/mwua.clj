@@ -10,7 +10,10 @@
   (let [sum (apply + weights)]
     (vec (map (fn [w] (/ w sum)) weights))))
 
-(defn draw [{:keys [weights random]}]
+(defn draw
+  "Zieht aus einem State mit der Wahrscheinlichkeitsverteilung weights
+  einen Experten"
+  [{:keys [weights random experts ]}]
   (let [normalized_weights (normalize weights)
         p (.nextDouble random)]
     (loop [index 0
@@ -18,7 +21,7 @@
       (let [new_partial_sum_weights (+ partial_sum_weights
                                        (nth normalized_weights index))]
         (if (<= p new_partial_sum_weights)
-          index
+          (nth experts index)
           (recur (inc index) 
                  new_partial_sum_weights))))))
 

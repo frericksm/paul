@@ -67,6 +67,11 @@
 (defn best-experts [s t]
   (as-> (dc/range-spieltage s t 1200) x
     (filter (fn [[s ta]] (= ta t)) x)
+    (expert-distribution x (init-state [5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25] ))))
+
+(defn best-experts-sorted [s t]
+  (as-> (dc/range-spieltage s t 1200) x
+    (filter (fn [[s ta]] (= ta t)) x)
     (expert-distribution x (init-state [5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25] ))
     (m/experts-sorted-by-weight x)))
 
