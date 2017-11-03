@@ -1,9 +1,19 @@
+(require '[boot.core]
+         '[boot.repl])
+
+
+(swap! boot.repl/*default-dependencies*
+       concat '[[cider/cider-nrepl "0.15.1"]])
+
+(swap! boot.repl/*default-middleware*
+       conj 'cider.nrepl/cider-middleware)
+
 (set-env!
  :source-paths #{"src" "dev"}
- :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
+ :dependencies '[[org.clojure/clojure "1.9.0-beta2"]
                  [com.stuartsierra/component "0.2.1"]
                  [enlive "1.1.5"]
-                 [incanter "1.5.5"]
+                 [incanter "1.5.7"]
                  [org.clojure/data.json "0.2.5"]
                  ;;[svm-clj "0.1.3"]
 
@@ -14,7 +24,7 @@
 
 (task-options!
  repl {:server true
-       :port 44444
+       :port 44445
        :init-ns 'user})
 
 (deftask develop
