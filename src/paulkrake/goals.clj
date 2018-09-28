@@ -6,7 +6,7 @@
             [paulkrake.shots :as shots]
             [paulkrake.goals-per-shots :as gps]
             [paulkrake.shots :as shots]
-            [incanter.distributions :as d]))
+           ))
 
 (defn goals-to-score-fn-factory 
   "Returns a function of one parameter g mapping int -> #{0 1}. Returns 0 if g < min-goals. Returns 1 if g >= min-goals."
